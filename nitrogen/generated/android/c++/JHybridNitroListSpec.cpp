@@ -7,9 +7,12 @@
 
 #include "JHybridNitroListSpec.hpp"
 
+// Forward declaration of `LayoutRectangle` to properly resolve imports.
+namespace margelo::nitro::nitrolist { struct LayoutRectangle; }
 
-
-
+#include "LayoutRectangle.hpp"
+#include <vector>
+#include "JLayoutRectangle.hpp"
 
 namespace margelo::nitro::nitrolist {
 
@@ -51,6 +54,24 @@ namespace margelo::nitro::nitrolist {
   }
 
   // Methods
-  
+  std::vector<LayoutRectangle> JHybridNitroListSpec::computeLayout(double containerWidth, const std::vector<double>& itemHeights) {
+    static const auto method = javaClassStatic()->getMethod<jni::local_ref<jni::JArrayClass<JLayoutRectangle>>(double /* containerWidth */, jni::alias_ref<jni::JArrayDouble> /* itemHeights */)>("computeLayout");
+    auto __result = method(_javaPart, containerWidth, [&]() {
+      size_t __size = itemHeights.size();
+      jni::local_ref<jni::JArrayDouble> __array = jni::JArrayDouble::newArray(__size);
+      __array->setRegion(0, __size, itemHeights.data());
+      return __array;
+    }());
+    return [&]() {
+      size_t __size = __result->size();
+      std::vector<LayoutRectangle> __vector;
+      __vector.reserve(__size);
+      for (size_t __i = 0; __i < __size; __i++) {
+        auto __element = __result->getElement(__i);
+        __vector.push_back(__element->toCpp());
+      }
+      return __vector;
+    }();
+  }
 
 } // namespace margelo::nitro::nitrolist

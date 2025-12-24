@@ -10,7 +10,7 @@ package com.margelo.nitro.nitrolist
 import androidx.annotation.Keep
 import com.facebook.jni.HybridData
 import com.facebook.proguard.annotations.DoNotStrip
-import com.margelo.nitro.views.HybridView
+import com.margelo.nitro.core.HybridObject
 
 /**
  * A Kotlin class representing the NitroList HybridObject.
@@ -23,7 +23,7 @@ import com.margelo.nitro.views.HybridView
   "RedundantSuppression", "RedundantUnitReturnType", "SimpleRedundantLet",
   "LocalVariableName", "PropertyName", "PrivatePropertyName", "FunctionName"
 )
-abstract class HybridNitroListSpec: HybridView() {
+abstract class HybridNitroListSpec: HybridObject() {
   @DoNotStrip
   private var mHybridData: HybridData = initHybrid()
 
@@ -49,7 +49,9 @@ abstract class HybridNitroListSpec: HybridView() {
   abstract var isRed: Boolean
 
   // Methods
-  
+  @DoNotStrip
+  @Keep
+  abstract fun computeLayout(containerWidth: Double, itemHeights: DoubleArray): Array<LayoutRectangle>
 
   private external fun initHybrid(): HybridData
 

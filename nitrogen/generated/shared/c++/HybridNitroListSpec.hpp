@@ -13,9 +13,11 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
+// Forward declaration of `LayoutRectangle` to properly resolve imports.
+namespace margelo::nitro::nitrolist { struct LayoutRectangle; }
 
-
-
+#include "LayoutRectangle.hpp"
+#include <vector>
 
 namespace margelo::nitro::nitrolist {
 
@@ -49,7 +51,7 @@ namespace margelo::nitro::nitrolist {
 
     public:
       // Methods
-      
+      virtual std::vector<LayoutRectangle> computeLayout(double containerWidth, const std::vector<double>& itemHeights) = 0;
 
     protected:
       // Hybrid Setup

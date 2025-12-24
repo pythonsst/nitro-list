@@ -12,9 +12,11 @@
 // Forward declaration of `HybridNitroListSpec_cxx` to properly resolve imports.
 namespace NitroList { class HybridNitroListSpec_cxx; }
 
+// Forward declaration of `LayoutRectangle` to properly resolve imports.
+namespace margelo::nitro::nitrolist { struct LayoutRectangle; }
 
-
-
+#include "LayoutRectangle.hpp"
+#include <vector>
 
 #include "NitroList-Swift-Cxx-Umbrella.hpp"
 
@@ -65,7 +67,14 @@ namespace margelo::nitro::nitrolist {
 
   public:
     // Methods
-    
+    inline std::vector<LayoutRectangle> computeLayout(double containerWidth, const std::vector<double>& itemHeights) override {
+      auto __result = _swiftPart.computeLayout(std::forward<decltype(containerWidth)>(containerWidth), itemHeights);
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
 
   private:
     NitroList::HybridNitroListSpec_cxx _swiftPart;

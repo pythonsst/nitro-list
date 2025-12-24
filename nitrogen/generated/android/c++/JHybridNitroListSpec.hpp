@@ -55,7 +55,7 @@ namespace margelo::nitro::nitrolist {
 
   public:
     // Methods
-    
+    std::vector<LayoutRectangle> computeLayout(double containerWidth, const std::vector<double>& itemHeights) override;
 
   private:
     friend HybridBase;

@@ -16,6 +16,7 @@ namespace margelo::nitro::nitrolist {
     registerHybrids(this, [](Prototype& prototype) {
       prototype.registerHybridGetter("isRed", &HybridNitroListSpec::getIsRed);
       prototype.registerHybridSetter("isRed", &HybridNitroListSpec::setIsRed);
+      prototype.registerHybridMethod("computeLayout", &HybridNitroListSpec::computeLayout);
     });
   }
 

@@ -1,13 +1,22 @@
-import type {
-  HybridView,
-  HybridViewProps,
-  HybridViewMethods,
-} from 'react-native-nitro-modules'
+import { type HybridObject } from 'react-native-nitro-modules'
 
-export interface NitroListProps extends HybridViewProps {
-   isRed: boolean
+export interface LayoutRectangle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
-export interface NitroListMethods extends HybridViewMethods {}
-
-export type NitroList = HybridView<NitroListProps, NitroListMethods, { ios: 'swift', android: 'kotlin' }>
+/**
+ * World-Class Logic Engine.
+ * Pre-calculates the entire list blueprint in one native pass.
+ */
+export interface NitroList extends HybridObject<{ ios: 'swift', android: 'kotlin' }> {
+  /**
+   * Calculates the position of every item synchronously.
+   */
+  computeLayout(containerWidth: number, itemHeights: number[]): LayoutRectangle[];
+  
+  /** Test property for UI verification */
+  isRed: boolean;
+}

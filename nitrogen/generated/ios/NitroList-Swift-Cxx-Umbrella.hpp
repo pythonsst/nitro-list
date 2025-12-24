@@ -10,10 +10,16 @@
 // Forward declarations of C++ defined types
 // Forward declaration of `HybridNitroListSpec` to properly resolve imports.
 namespace margelo::nitro::nitrolist { class HybridNitroListSpec; }
+// Forward declaration of `LayoutRectangle` to properly resolve imports.
+namespace margelo::nitro::nitrolist { struct LayoutRectangle; }
 
 // Include C++ defined types
 #include "HybridNitroListSpec.hpp"
+#include "LayoutRectangle.hpp"
+#include <NitroModules/Result.hpp>
+#include <exception>
 #include <memory>
+#include <vector>
 
 // C++ helpers for Swift
 #include "NitroList-Swift-Cxx-Bridge.hpp"

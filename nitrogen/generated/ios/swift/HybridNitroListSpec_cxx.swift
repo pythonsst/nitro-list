@@ -126,15 +126,21 @@ open class HybridNitroListSpec_cxx {
   }
 
   // Methods
-  public final func getView() -> UnsafeMutableRawPointer {
-    return Unmanaged.passRetained(__implementation.view).toOpaque()
-  }
-  
-  public final func beforeUpdate() {
-    __implementation.beforeUpdate()
-  }
-  
-  public final func afterUpdate() {
-    __implementation.afterUpdate()
+  @inline(__always)
+  public final func computeLayout(containerWidth: Double, itemHeights: bridge.std__vector_double_) -> bridge.Result_std__vector_LayoutRectangle__ {
+    do {
+      let __result = try self.__implementation.computeLayout(containerWidth: containerWidth, itemHeights: itemHeights.map({ __item in __item }))
+      let __resultCpp = { () -> bridge.std__vector_LayoutRectangle_ in
+        var __vector = bridge.create_std__vector_LayoutRectangle_(__result.count)
+        for __item in __result {
+          __vector.push_back(__item)
+        }
+        return __vector
+      }()
+      return bridge.create_Result_std__vector_LayoutRectangle__(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__vector_LayoutRectangle__(__exceptionPtr)
+    }
   }
 }

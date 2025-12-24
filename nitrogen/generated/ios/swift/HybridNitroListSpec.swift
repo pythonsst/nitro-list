@@ -9,12 +9,12 @@ import Foundation
 import NitroModules
 
 /// See ``HybridNitroListSpec``
-public protocol HybridNitroListSpec_protocol: HybridObject, HybridView {
+public protocol HybridNitroListSpec_protocol: HybridObject {
   // Properties
   var isRed: Bool { get set }
 
   // Methods
-  
+  func computeLayout(containerWidth: Double, itemHeights: [Double]) throws -> [LayoutRectangle]
 }
 
 public extension HybridNitroListSpec_protocol {
