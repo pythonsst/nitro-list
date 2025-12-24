@@ -1,0 +1,10 @@
+{
+  "uiViewClassName": "NitroList",
+  "supportsRawText": false,
+  "bubblingEventTypes": {},
+  "directEventTypes": {},
+  "validAttributes": {
+    "isRed": true,
+    "hybridRef": true
+  }
+}
