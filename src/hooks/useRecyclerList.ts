@@ -1,9 +1,9 @@
-import { useMemo, useRef } from 'react'
-import type { LayoutRectangle } from '../layout/LayoutRectangle'
-import type { Viewport } from '../windowing/Viewport'
-import { getVisibleRange } from '../windowing/BinarySearchWindow'
-import { ViewRecycler } from '../recycler/ViewRecycler'
-import type { ViewSlot } from '../recycler/ViewSlot'
+import { useRef, useMemo, useState, useEffect } from "react"
+import type { LayoutRectangle } from "react-native"
+import { ViewRecycler } from "../recycler/ViewRecycler"
+import type { ViewSlot } from "../recycler/ViewSlot"
+import type { Viewport } from "../windowing/Viewport"
+import { getVisibleRange } from "../windowing/BinarySearchWindow"
 
 export function useRecyclerList(
   layouts: readonly LayoutRectangle[],
@@ -11,12 +11,7 @@ export function useRecyclerList(
   bufferPx: number,
   getItemType: (index: number) => string
 ): readonly ViewSlot[] {
-  const recyclerRef = useRef<ViewRecycler | null>(null)
-
-  if (recyclerRef.current === null) {
-    recyclerRef.current = new ViewRecycler()
-  }
-
+  const recyclerRef = useRef(new ViewRecycler())
   const { offsetY, height } = viewport
 
   const visibleIndices = useMemo(
@@ -24,18 +19,26 @@ export function useRecyclerList(
     [layouts, offsetY, height, bufferPx]
   )
 
-  const visibleSet = useMemo(
-    () => new Set(visibleIndices),
-    [visibleIndices]
-  )
+  const [slots, setSlots] = useState<readonly ViewSlot[]>([])
 
-  const recycler = recyclerRef.current
+  useEffect(() => {
+    const next = recyclerRef.current.reconcile(
+      visibleIndices,
+      getItemType
+    )
 
-  const slots = visibleIndices.map((index) =>
-    recycler.acquire(index, getItemType(index))
-  )
-
-  recycler.releaseUnused(visibleSet)
+    // 🔒 FlashList-style commit guard
+    setSlots(prev => {
+      if (prev === next) return prev
+      if (
+        prev.length === next.length &&
+        prev.every((s, i) => s === next[i])
+      ) {
+        return prev
+      }
+      return next
+    })
+  }, [visibleIndices, getItemType])
 
   return slots
 }

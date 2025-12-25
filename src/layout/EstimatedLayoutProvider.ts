@@ -14,16 +14,19 @@ export function useRecyclerList(
   /** 1️⃣ Stable recycler (never null) */
   const recyclerRef = useRef<ViewRecycler>(new ViewRecycler())
 
-  /** 2️⃣ Visible indices (pure calculation) */
+  /** 2️⃣ Extract primitives (IMPORTANT) */
+  const { offsetY, height } = viewport
+
+  /** 3️⃣ Visible indices (pure calculation) */
   const visibleIndices = useMemo(
-    () => getVisibleRange(layouts, viewport, bufferPx),
-    [layouts, viewport, bufferPx]
+    () => getVisibleRange(layouts, offsetY, height, bufferPx),
+    [layouts, offsetY, height, bufferPx]
   )
 
-  /** 3️⃣ Slots are state, not computed during render */
+  /** 4️⃣ Slots are committed state */
   const [slots, setSlots] = useState<readonly ViewSlot[]>([])
 
-  /** 4️⃣ Mutations happen AFTER render */
+  /** 5️⃣ Mutations happen AFTER render */
   useEffect(() => {
     const recycler = recyclerRef.current
 
