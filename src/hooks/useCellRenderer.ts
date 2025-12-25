@@ -9,7 +9,6 @@ import type { ScrollMetrics } from '../windowing/ScrollMetrics'
  * 🔒 Stable empty references (module-level)
  * These MUST NOT be recreated per render.
  */
-const EMPTY_LAYOUTS: readonly LayoutRectangle[] = []
 const EMPTY_INDICES: readonly number[] = []
 
 /**
