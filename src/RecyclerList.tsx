@@ -1,109 +1,87 @@
-// src/RecyclerList.tsx
+import React, { useMemo } from 'react'
+import { ScrollView, View } from 'react-native'
+import type { ReactElement } from 'react'
 
-import React, { useEffect, useMemo, useCallback } from 'react';
-import { ScrollView, View, Dimensions } from 'react-native';
-import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import type { RecyclerListProps } from './RecyclerList.types'
+import type { LayoutRectangle } from './layout/LayoutRectangle'
 
-import { NitroListModule } from './NitroListModule';
-import { useRecyclerList } from './useRecyclerList';
-import { getVisibleIndices } from './getVisibleIndices';
-import type { LayoutRectangle } from './specs/nitro-list.nitro';
+import { computeLinearLayout } from './layout/LayoutEngine'
+import { useScrollEvents } from './hooks/useScrollEvents'
+import { useRecyclerList } from './hooks/useRecyclerList'
 
-export type RecyclerListProps = {
-  containerWidth: number;
-  itemHeights: readonly number[];
-  renderBufferRatio?: number;
-  renderItem: (index: number) => React.ReactElement;
-};
+/**
+ * Safe helper — TS & runtime correct
+ */
+function getLastLayout(
+  layouts: readonly LayoutRectangle[]
+): LayoutRectangle | null {
+  const len = layouts.length
+  if (len === 0) return null
+
+  const last = layouts[len - 1]
+  return last ?? null
+}
 
 export function RecyclerList({
   containerWidth,
+  itemCount,
   itemHeights,
-  renderBufferRatio = 1,
+  estimatedItemHeight = 80,
+  renderBufferRatio = 1.3,
+  getItemType = () => 'default',
   renderItem,
-}: RecyclerListProps) {
-  const { views, reconcile } = useRecyclerList();
-
-  const viewportHeight = Dimensions.get('window').height;
+}: RecyclerListProps): ReactElement {
+  /**
+   * Resolve item heights
+   */
+  const resolvedHeights = useMemo<readonly number[]>(() => {
+    if (itemHeights) return itemHeights
+    if (itemCount == null) return []
+    return Array.from({ length: itemCount }, () => estimatedItemHeight)
+  }, [itemHeights, itemCount, estimatedItemHeight])
 
   /**
-   * Native layout computation (runs once per data change).
+   * Compute layouts once
    */
   const layouts = useMemo<readonly LayoutRectangle[]>(() => {
-    if (itemHeights.length === 0) {
-      return [];
-    }
-
-    return NitroListModule.computeLayout(containerWidth, itemHeights);
-  }, [containerWidth, itemHeights]);
+    if (resolvedHeights.length === 0) return []
+    return computeLinearLayout(containerWidth, resolvedHeights)
+  }, [containerWidth, resolvedHeights])
 
   /**
-   * Total scrollable height.
+   * Scroll → viewport
    */
-  const totalHeight = useMemo(() => {
-    if (layouts.length === 0) {
-      return 0;
-    }
-
-    const last = layouts[layouts.length - 1];
-    if (!last) {
-      return 0;
-    }
-
-    return last.y + last.height;
-  }, [layouts]);
+  const { viewport, onScroll, onLayout } = useScrollEvents()
 
   /**
-   * Initial windowing to avoid blank screen.
+   * Buffer in px
    */
-  useEffect(() => {
-    if (layouts.length === 0) {
-      return;
-    }
-
-    const bufferPx = viewportHeight * renderBufferRatio;
-    const initialIndices = getVisibleIndices(
-      layouts,
-      0,
-      viewportHeight,
-      bufferPx
-    );
-
-    reconcile(initialIndices);
-  }, [layouts, viewportHeight, renderBufferRatio, reconcile]);
+  const bufferPx = viewport.height * renderBufferRatio
 
   /**
-   * Scroll handler → windowing → reconciliation.
+   * Recycler slots
    */
-  const handleScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const offsetY = e.nativeEvent.contentOffset.y;
-      const bufferPx = viewportHeight * renderBufferRatio;
+  const slots = useRecyclerList(layouts, viewport, bufferPx, getItemType)
 
-      const indices = getVisibleIndices(
-        layouts,
-        offsetY,
-        viewportHeight,
-        bufferPx
-      );
-
-      reconcile(indices);
-    },
-    [layouts, viewportHeight, renderBufferRatio, reconcile]
-  );
+  /**
+   * Total scrollable height (TS-safe)
+   */
+  const contentHeight = useMemo(() => {
+    const last = getLastLayout(layouts)
+    return last ? last.y + last.height : 0
+  }, [layouts])
 
   return (
     <ScrollView
+      onLayout={onLayout}
       scrollEventThrottle={16}
-      onScroll={handleScroll}
+      onScroll={onScroll}
       removeClippedSubviews
     >
-      <View style={{ height: totalHeight }}>
-        {views.map((slot) => {
-          const layout = layouts[slot.index];
-          if (!layout) {
-            return null;
-          }
+      <View style={{ height: contentHeight }}>
+        {slots.map((slot) => {
+          const layout = layouts[slot.index]
+          if (!layout) return null
 
           return (
             <View
@@ -111,16 +89,16 @@ export function RecyclerList({
               style={{
                 position: 'absolute',
                 top: layout.y,
-                left: layout.x,
+                left: 0,
                 width: layout.width,
                 height: layout.height,
               }}
             >
               {renderItem(slot.index)}
             </View>
-          );
+          )
         })}
       </View>
     </ScrollView>
-  );
+  )
 }

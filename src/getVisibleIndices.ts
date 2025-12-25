@@ -1,45 +1,43 @@
-// src/getVisibleIndices.ts
-
-import type { LayoutRectangle } from './specs/nitro-list.nitro';
+import type { LayoutRectangle } from './layout/LayoutRectangle'
+import type { Viewport } from './windowing/Viewport'
 
 /**
- * Computes indices whose layouts intersect the visible
- * viewport plus an overscan buffer.
- *
- * Pure function. No side effects.
+ * Binary-search based windowing.
+ * Returns indices intersecting viewport ± buffer.
  */
-export function getVisibleIndices(
+export function getVisibleRange(
   layouts: readonly LayoutRectangle[],
-  contentOffsetY: number,
-  viewportHeight: number,
-  renderBufferPx: number
-): number[] {
-  if (layouts.length === 0) {
-    return [];
-  }
+  viewport: Viewport,
+  bufferPx: number
+): readonly number[] {
+  if (layouts.length === 0) return []
 
-  const windowTop = contentOffsetY - renderBufferPx;
-  const windowBottom = contentOffsetY + viewportHeight + renderBufferPx;
+  const startY = Math.max(0, viewport.offsetY - bufferPx)
+  const endY = viewport.offsetY + viewport.height + bufferPx
 
-  const result: number[] = [];
+  let low = 0
+  let high = layouts.length - 1
+  let first = layouts.length
 
-  for (let i = 0; i < layouts.length; i++) {
-    const rect = layouts[i];
-    if (!rect) {
-      // Required for `noUncheckedIndexedAccess`
-      continue;
-    }
+  while (low <= high) {
+    const mid = (low + high) >> 1
+    const rect = layouts[mid]!
 
-    const rectTop = rect.y;
-    const rectBottom = rect.y + rect.height;
-
-    if (rectBottom > windowTop && rectTop < windowBottom) {
-      result.push(i);
-    } else if (rectTop > windowBottom) {
-      // Layouts are ordered by y; safe early exit
-      break;
+    if (rect.y + rect.height >= startY) {
+      first = mid
+      high = mid - 1
+    } else {
+      low = mid + 1
     }
   }
 
-  return result;
+  const visible: number[] = []
+
+  for (let i = first; i < layouts.length; i++) {
+    const rect = layouts[i]!
+    if (rect.y > endY) break
+    visible.push(i)
+  }
+
+  return visible
 }
