@@ -46,8 +46,7 @@ namespace margelo::nitro::nitrolist {
 
     public:
       // Properties
-      virtual bool getIsRed() = 0;
-      virtual void setIsRed(bool isRed) = 0;
+      
 
     public:
       // Methods

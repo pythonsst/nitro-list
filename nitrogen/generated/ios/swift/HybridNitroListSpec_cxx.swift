@@ -114,16 +114,7 @@ open class HybridNitroListSpec_cxx {
   }
 
   // Properties
-  public final var isRed: Bool {
-    @inline(__always)
-    get {
-      return self.__implementation.isRed
-    }
-    @inline(__always)
-    set {
-      self.__implementation.isRed = newValue
-    }
-  }
+  
 
   // Methods
   @inline(__always)

@@ -1,22 +1,27 @@
-import { type HybridObject } from 'react-native-nitro-modules'
+// src/specs/nitro-list.nitro.ts
+
+import { type HybridObject } from 'react-native-nitro-modules';
 
 export interface LayoutRectangle {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 /**
- * World-Class Logic Engine.
- * Pre-calculates the entire list blueprint in one native pass.
+ * Native layout engine for RecyclerList.
+ * Computes absolute item geometry in a single synchronous pass.
  */
-export interface NitroList extends HybridObject<{ ios: 'swift', android: 'kotlin' }> {
+export interface NitroList extends HybridObject<{ ios: 'swift' }> {
   /**
    * Calculates the position of every item synchronously.
+   *
+   * @param containerWidth Width of the list container (px)
+   * @param itemHeights    Heights of all items (immutable)
    */
-  computeLayout(containerWidth: number, itemHeights: number[]): LayoutRectangle[];
-  
-  /** Test property for UI verification */
-  isRed: boolean;
+  computeLayout(
+    containerWidth: number,
+    itemHeights: readonly number[]
+  ): readonly LayoutRectangle[];
 }

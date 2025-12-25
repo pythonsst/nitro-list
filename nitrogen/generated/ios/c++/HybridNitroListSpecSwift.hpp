@@ -58,12 +58,7 @@ namespace margelo::nitro::nitrolist {
 
   public:
     // Properties
-    inline bool getIsRed() noexcept override {
-      return _swiftPart.isRed();
-    }
-    inline void setIsRed(bool isRed) noexcept override {
-      _swiftPart.setIsRed(std::forward<decltype(isRed)>(isRed));
-    }
+    
 
   public:
     // Methods
