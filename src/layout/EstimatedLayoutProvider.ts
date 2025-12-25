@@ -1,43 +1,35 @@
-import { useMemo, useRef, useEffect, useState } from 'react'
-import type { LayoutRectangle } from '../layout/LayoutRectangle'
-import type { Viewport } from '../windowing/Viewport'
-import { getVisibleRange } from '../windowing/BinarySearchWindow'
-import { ViewRecycler } from '../recycler/ViewRecycler'
-import type { ViewSlot } from '../recycler/ViewSlot'
+import type { LayoutProvider } from './LayoutProvider'
+import type { LayoutRectangle } from './LayoutRectangle'
 
-export function useRecyclerList(
-  layouts: readonly LayoutRectangle[],
-  viewport: Viewport,
-  bufferPx: number,
-  getItemType: (index: number) => string
-): readonly ViewSlot[] {
-  /** 1️⃣ Stable recycler (never null) */
-  const recyclerRef = useRef<ViewRecycler>(new ViewRecycler())
+/**
+ * Layout provider using estimated item heights.
+ * Used before real measurements are available.
+ */
+export class EstimatedLayoutProvider implements LayoutProvider {
+  private readonly itemCount: number
+  private readonly itemHeight: number
+  private readonly width: number
 
-  /** 2️⃣ Extract primitives (IMPORTANT) */
-  const { offsetY, height } = viewport
+  constructor(
+    itemCount: number,
+    itemHeight: number,
+    width: number
+  ) {
+    this.itemCount = itemCount
+    this.itemHeight = itemHeight
+    this.width = width
+  }
 
-  /** 3️⃣ Visible indices (pure calculation) */
-  const visibleIndices = useMemo(
-    () => getVisibleRange(layouts, offsetY, height, bufferPx),
-    [layouts, offsetY, height, bufferPx]
-  )
+  getItemCount(): number {
+    return this.itemCount
+  }
 
-  /** 4️⃣ Slots are committed state */
-  const [slots, setSlots] = useState<readonly ViewSlot[]>([])
-
-  /** 5️⃣ Mutations happen AFTER render */
-  useEffect(() => {
-    const recycler = recyclerRef.current
-
-    const nextSlots = visibleIndices.map((index) =>
-      recycler.acquire(index, getItemType(index))
-    )
-
-    recycler.releaseUnused(visibleIndices)
-
-    setSlots(nextSlots)
-  }, [visibleIndices, getItemType])
-
-  return slots
+  getLayout(index: number): LayoutRectangle {
+    return {
+      x: 0,
+      y: index * this.itemHeight,
+      width: this.width,
+      height: this.itemHeight,
+    }
+  }
 }

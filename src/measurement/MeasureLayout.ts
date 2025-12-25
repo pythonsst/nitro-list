@@ -1,9 +1,20 @@
-import type { LayoutProvider } from '../layout/LayoutProvider'
+import type { LayoutChangeEvent } from 'react-native'
 
-export function applyMeasurement(
-  provider: LayoutProvider,
-  index: number,
-  height: number
-): void {
-  provider.updateLayout(index, height)
+export interface MeasuredLayout {
+  readonly width: number
+  readonly height: number
+}
+
+/**
+ * Extracts stable layout measurements from RN onLayout event.
+ */
+export function measureLayout(
+  event: LayoutChangeEvent
+): MeasuredLayout {
+  const { width, height } = event.nativeEvent.layout
+
+  return {
+    width,
+    height,
+  }
 }

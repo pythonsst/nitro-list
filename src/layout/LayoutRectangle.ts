@@ -1,4 +1,7 @@
-// src/layout/LayoutRectangle.ts
+/**
+ * Immutable layout rectangle for a single item.
+ * Equivalent to FlashList's Layout.
+ */
 export interface LayoutRectangle {
   readonly x: number
   readonly y: number

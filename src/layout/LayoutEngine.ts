@@ -1,23 +1,20 @@
-// src/layout/LayoutEngine.ts
+import type { LayoutProvider } from './LayoutProvider'
 import type { LayoutRectangle } from './LayoutRectangle'
 
-export function computeLinearLayout(
-  containerWidth: number,
-  itemHeights: readonly number[]
+/**
+ * Resolves layouts eagerly into a contiguous array.
+ * Pure, deterministic, and reusable.
+ *
+ * FlashList equivalent: internal layout resolver.
+ */
+export function computeLayouts(
+  provider: LayoutProvider
 ): readonly LayoutRectangle[] {
-  const layouts: LayoutRectangle[] = []
-  let currentY = 0
+  const count = provider.getItemCount()
+  const layouts: LayoutRectangle[] = new Array(count)
 
-  for (const height of itemHeights) {
-    // height is guaranteed to be number
-    layouts.push({
-      x: 0,
-      y: currentY,
-      width: containerWidth,
-      height,
-    })
-
-    currentY += height
+  for (let i = 0; i < count; i++) {
+    layouts[i] = provider.getLayout(i)
   }
 
   return layouts

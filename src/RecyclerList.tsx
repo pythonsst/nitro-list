@@ -1,26 +1,27 @@
 import React, { useMemo } from 'react'
-import { ScrollView, View } from 'react-native'
-import type { ReactElement } from 'react'
+import {
+  ScrollView,
+  View,
+  StyleSheet,
+} from 'react-native'
 
-import type { RecyclerListProps } from './RecyclerList.types'
 import type { LayoutRectangle } from './layout/LayoutRectangle'
+import type { Cell } from './cell/Cell'
 
-import { computeLinearLayout } from './layout/LayoutEngine'
-import { useScrollEvents } from './hooks/useScrollEvents'
-import { useRecyclerList } from './hooks/useRecyclerList'
+import { useRecyclerListInternal } from './RecyclerList.internal'
+import { useScrollMetrics } from './windowing'
 
-/**
- * Safe helper — TS & runtime correct
- */
-function getLastLayout(
-  layouts: readonly LayoutRectangle[]
-): LayoutRectangle | null {
-  const len = layouts.length
-  if (len === 0) return null
-
-  const last = layouts[len - 1]
-  return last ?? null
+export type RecyclerListProps = {
+  containerWidth: number
+  itemCount?: number
+  itemHeights?: readonly number[]
+  estimatedItemHeight?: number
+  renderBufferRatio?: number
+  getItemType?: (index: number) => string
+  renderItem: (index: number) => React.ReactElement
 }
+
+const DEFAULT_VIEWPORT_HEIGHT = 800 // 🔒 FlashList-style fallback
 
 export function RecyclerList({
   containerWidth,
@@ -30,7 +31,7 @@ export function RecyclerList({
   renderBufferRatio = 1.3,
   getItemType = () => 'default',
   renderItem,
-}: RecyclerListProps): ReactElement {
+}: RecyclerListProps): React.ReactElement {
   /**
    * Resolve item heights
    */
@@ -41,60 +42,91 @@ export function RecyclerList({
   }, [itemHeights, itemCount, estimatedItemHeight])
 
   /**
-   * Compute layouts once
+   * Compute linear layouts
    */
   const layouts = useMemo<readonly LayoutRectangle[]>(() => {
-    if (resolvedHeights.length === 0) return []
-    return computeLinearLayout(containerWidth, resolvedHeights)
-  }, [containerWidth, resolvedHeights])
+    let y = 0
+    const result: LayoutRectangle[] = []
+
+    for (let i = 0; i < resolvedHeights.length; i++) {
+      const height = resolvedHeights[i]!
+      result.push({
+        x: 0,
+        y,
+        width: containerWidth,
+        height,
+      })
+      y += height
+    }
+
+    return result
+  }, [resolvedHeights, containerWidth])
 
   /**
-   * Scroll → viewport
+   * Scroll metrics
    */
-  const { viewport, onScroll, onLayout } = useScrollEvents()
+  const {
+    metrics,
+    onScroll,
+    onLayout,
+  } = useScrollMetrics()
 
   /**
-   * Buffer in px
+   * 🔒 IMPORTANT FIX
+   * Never allow height = 0 to control windowing
    */
-  const bufferPx = viewport.height * renderBufferRatio
+  const effectiveHeight =
+    metrics.height > 0
+      ? metrics.height
+      : DEFAULT_VIEWPORT_HEIGHT
+
+  const bufferPx = effectiveHeight * renderBufferRatio
 
   /**
-   * Recycler slots
+   * Resolve visible cells
    */
-  const slots = useRecyclerList(layouts, viewport, bufferPx, getItemType)
+  const cells: readonly Cell[] = useRecyclerListInternal(
+    layouts,
+    metrics,
+    bufferPx,
+    getItemType
+  )
 
   /**
-   * Total scrollable height (TS-safe)
+   * Total scrollable height
    */
   const contentHeight = useMemo(() => {
-    const last = getLastLayout(layouts)
-    return last ? last.y + last.height : 0
+    if (layouts.length === 0) return 0
+    const last = layouts[layouts.length - 1]!
+    return last.y + last.height
   }, [layouts])
 
   return (
     <ScrollView
+      style={styles.container}
       onLayout={onLayout}
-      scrollEventThrottle={16}
       onScroll={onScroll}
+      scrollEventThrottle={16}
       removeClippedSubviews
     >
-      <View style={{ height: contentHeight }}>
-        {slots.map((slot) => {
-          const layout = layouts[slot.index]
+      <View style={[styles.content, { height: contentHeight }]}>
+        {cells.map((cell) => {
+          const layout = layouts[cell.index]
           if (!layout) return null
 
           return (
             <View
-              key={slot.key}
-              style={{
-                position: 'absolute',
-                top: layout.y,
-                left: 0,
-                width: layout.width,
-                height: layout.height,
-              }}
+              key={cell.key}
+              style={[
+                styles.cell,
+                {
+                  top: layout.y,
+                  width: layout.width,
+                  height: layout.height,
+                },
+              ]}
             >
-              {renderItem(slot.index)}
+              {renderItem(cell.index)}
             </View>
           )
         })}
@@ -102,3 +134,17 @@ export function RecyclerList({
     </ScrollView>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    position: 'relative',
+    width: '100%',
+  },
+  cell: {
+    position: 'absolute',
+    left: 0,
+  },
+})

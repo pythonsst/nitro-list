@@ -1,53 +1,49 @@
 import type { LayoutRectangle } from '../layout/LayoutRectangle'
-import type { Viewport } from './Viewport'
+import type { ScrollMetrics } from './ScrollMetrics'
 
 /**
- * Computes the contiguous range of item indices that intersect
- * the viewport expanded by a pixel buffer.
+ * Computes the contiguous range of item indices
+ * intersecting the viewport expanded by bufferPx.
  *
- * This is a PURE function:
- * - no allocations besides the returned array
- * - no side effects
- * - safe to call on every scroll frame
- *
- * FlashList equivalent: visible window calculation
+ * PURE function. No allocations besides output.
+ * FlashList-style windowing.
  */
 export function findVisibleIndexRange(
   layouts: readonly LayoutRectangle[],
-  viewport: Viewport,
+  metrics: ScrollMetrics,
   bufferPx: number
 ): readonly number[] {
-  const itemCount = layouts.length
-  if (itemCount === 0) return []
+  const count = layouts.length
+  if (count === 0) return []
 
-  const windowStartY = Math.max(0, viewport.offsetY - bufferPx)
-  const windowEndY = viewport.offsetY + viewport.height + bufferPx
+  const windowStart = Math.max(0, metrics.offsetY - bufferPx)
+  const windowEnd = metrics.offsetY + metrics.height + bufferPx
 
-  // 1️⃣ Binary search: first item whose bottom intersects window
+  // Binary search for first intersecting item
   let low = 0
-  let high = itemCount - 1
-  let firstVisibleIndex = itemCount
+  let high = count - 1
+  let firstVisible = count
 
   while (low <= high) {
     const mid = (low + high) >> 1
-    const layout = layouts[mid]!
+    const rect = layouts[mid]!
 
-    if (layout.y + layout.height >= windowStartY) {
-      firstVisibleIndex = mid
+    if (rect.y + rect.height >= windowStart) {
+      firstVisible = mid
       high = mid - 1
     } else {
       low = mid + 1
     }
   }
 
-  // 2️⃣ Linear scan forward until window end
-  const visibleIndices: number[] = []
+  // Linear scan forward
+  const visible: number[] = []
 
-  for (let index = firstVisibleIndex; index < itemCount; index++) {
-    const layout = layouts[index]!
-    if (layout.y > windowEndY) break
-    visibleIndices.push(index)
+  for (let i = firstVisible; i < count; i++) {
+    const rect = layouts[i]!
+    if (rect.y > windowEnd) break
+    visible.push(i)
   }
 
-  return visibleIndices
+  return visible
 }

@@ -1,17 +1,27 @@
 import type { LayoutRectangle } from './layout/LayoutRectangle'
-import type { Viewport } from './windowing/Viewport'
-import type { ViewSlot } from './recycler/ViewSlot'
-import { useRecyclerList } from './hooks/useRecyclerList'
+import type { ScrollMetrics } from './windowing/ScrollMetrics'
+import type { Cell } from './cell/Cell'
 
+import { useCellRenderer } from './hooks/useCellRenderer'
+
+/**
+ * Internal hook used by RecyclerList.
+ * This is a thin alias over useCellRenderer.
+ *
+ * Exists only to keep RecyclerList internals clean and
+ * allow future internal divergence without breaking public API.
+ *
+ * FlashList pattern: internal indirection layer.
+ */
 export function useRecyclerListInternal(
   layouts: readonly LayoutRectangle[],
-  viewport: Viewport,
+  metrics: ScrollMetrics,
   bufferPx: number,
   getItemType: (index: number) => string
-): readonly ViewSlot[] {
-  return useRecyclerList(
+): readonly Cell[] {
+  return useCellRenderer(
     layouts,
-    viewport,
+    metrics,
     bufferPx,
     getItemType
   )
