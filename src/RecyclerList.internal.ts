@@ -5,13 +5,8 @@ import type { Cell } from './cell/Cell'
 import { useCellRenderer } from './hooks/useCellRenderer'
 
 /**
- * Internal hook used by RecyclerList.
- * This is a thin alias over useCellRenderer.
- *
- * Exists only to keep RecyclerList internals clean and
- * allow future internal divergence without breaking public API.
- *
- * FlashList pattern: internal indirection layer.
+ * INTERNAL hook.
+ * MUST ALWAYS CALL hooks in the same order.
  */
 export function useRecyclerListInternal(
   layouts: readonly LayoutRectangle[],
@@ -19,10 +14,25 @@ export function useRecyclerListInternal(
   bufferPx: number,
   getItemType: (index: number) => string
 ): readonly Cell[] {
+
+  /**
+   * FlashList rule:
+   * Hooks are ALWAYS called.
+   * Inputs are guarded instead.
+   */
+  const safeLayouts =
+    metrics.height > 0 ? layouts : EMPTY_LAYOUTS
+
+  const safeBufferPx =
+    metrics.height > 0 ? bufferPx : 0
+
   return useCellRenderer(
-    layouts,
+    safeLayouts,
     metrics,
-    bufferPx,
+    safeBufferPx,
     getItemType
   )
 }
+
+/** Stable empty reference */
+const EMPTY_LAYOUTS: readonly LayoutRectangle[] = []

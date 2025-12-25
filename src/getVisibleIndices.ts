@@ -1,5 +1,5 @@
 import type { LayoutRectangle } from './layout/LayoutRectangle'
-import type { Viewport } from './windowing/Viewport'
+import type { ScrollMetrics } from './windowing/ScrollMetrics'
 
 /**
  * Binary-search based windowing.
@@ -7,13 +7,23 @@ import type { Viewport } from './windowing/Viewport'
  */
 export function getVisibleRange(
   layouts: readonly LayoutRectangle[],
-  viewport: Viewport,
+  metrics: ScrollMetrics,
   bufferPx: number
 ): readonly number[] {
-  if (layouts.length === 0) return []
+  if (
+    layouts.length === 0 ||
+    metrics.height <= 0
+  ) {
+    return []
+  }
 
-  const startY = Math.max(0, viewport.offsetY - bufferPx)
-  const endY = viewport.offsetY + viewport.height + bufferPx
+  const startY = Math.max(
+    0,
+    metrics.offsetY - bufferPx
+  )
+
+  const endY =
+    metrics.offsetY + metrics.height + bufferPx
 
   let low = 0
   let high = layouts.length - 1

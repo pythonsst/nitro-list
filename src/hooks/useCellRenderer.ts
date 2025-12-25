@@ -6,8 +6,25 @@ import type { LayoutRectangle } from '../layout/LayoutRectangle'
 import type { ScrollMetrics } from '../windowing/ScrollMetrics'
 
 /**
+ * 🔒 Stable empty references (module-level)
+ * These MUST NOT be recreated per render.
+ */
+const EMPTY_LAYOUTS: readonly LayoutRectangle[] = []
+const EMPTY_INDICES: readonly number[] = []
+
+/**
  * React bridge for CellRecycler.
  * FlashList equivalent: useCellRenderer
+ *
+ * Responsibilities:
+ * - Translate scroll state → visible indices
+ * - Ask recycler for physical cells
+ * - Commit results with referential stability
+ *
+ * Responsibilities it does NOT have:
+ * ❌ Layout mutation
+ * ❌ Measurement
+ * ❌ Rendering
  */
 export function useCellRenderer(
   layouts: readonly LayoutRectangle[],
@@ -15,27 +32,49 @@ export function useCellRenderer(
   bufferPx: number,
   getCellType: (index: number) => string
 ): readonly Cell[] {
-  const recyclerRef = useRef(new CellRecycler())
+  /**
+   * Recycler instance is stable across renders.
+   */
+  const recyclerRef = useRef<CellRecycler>(new CellRecycler())
 
+  /**
+   * Compute visible indices.
+   * PURE + TOTAL:
+   * - Never throws
+   * - Always returns the same reference when empty
+   */
   const visibleIndices = useMemo(
     () =>
-      findVisibleIndexRange(
-        layouts,
-        metrics,
-        bufferPx
-      ),
+      layouts.length === 0
+        ? EMPTY_INDICES
+        : findVisibleIndexRange(
+            layouts,
+            metrics,
+            bufferPx
+          ),
     [layouts, metrics.offsetY, metrics.height, bufferPx]
   )
 
-  const [cells, setCells] = useState<readonly Cell[]>([])
+  /**
+   * Physical cells to render.
+   */
+  const [cells, setCells] =
+    useState<readonly Cell[]>([])
 
+  /**
+   * Reconcile visible indices → physical cells.
+   *
+   * FlashList invariant:
+   * - Only update state if identity truly changed
+   * - Prevents pointless re-renders
+   */
   useEffect(() => {
-    const next = recyclerRef.current.reconcile(
-      visibleIndices,
-      getCellType
-    )
+    const next =
+      recyclerRef.current.reconcile(
+        visibleIndices,
+        getCellType
+      )
 
-    // FlashList-style commit guard
     setCells(prev =>
       prev.length === next.length &&
       prev.every((c, i) => c === next[i])

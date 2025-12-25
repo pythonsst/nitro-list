@@ -14,10 +14,21 @@ export function findVisibleIndexRange(
   bufferPx: number
 ): readonly number[] {
   const count = layouts.length
-  if (count === 0) return []
 
-  const windowStart = Math.max(0, metrics.offsetY - bufferPx)
-  const windowEnd = metrics.offsetY + metrics.height + bufferPx
+  // 🔒 CRITICAL GUARDS (FlashList-style)
+  if (
+    count === 0 ||
+    metrics.height <= 0 ||
+    bufferPx < 0
+  ) {
+    return []
+  }
+
+  const windowStart =
+    Math.max(0, metrics.offsetY - bufferPx)
+
+  const windowEnd =
+    metrics.offsetY + metrics.height + bufferPx
 
   // Binary search for first intersecting item
   let low = 0
