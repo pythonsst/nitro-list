@@ -47,6 +47,10 @@ example/ios/Pods
 # Ruby
 example/vendor/
 
+nitrogen
+npm run codegen
+
+
 # node.js
 #
 node_modules/
