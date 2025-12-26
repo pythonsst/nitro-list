@@ -5,7 +5,7 @@ import NitroModules
  * Native layout engine for RecyclerList.
  * Pure, deterministic, synchronous computation.
  */
-final class HybridNitroList: HybridNitroListSpec {
+final class HybridNitroLayoutEngine: HybridNitroLayoutEngineSpec {
 
   /**
    * Computes absolute layout rectangles for all items.
