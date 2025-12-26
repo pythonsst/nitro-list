@@ -1,24 +1,157 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { NitroList } from 'react-native-nitro-list';
+import React, { useMemo } from 'react'
+import {
+  StyleSheet,
+  View,
+  Text,
+  useWindowDimensions,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { RecyclerList } from 'react-native-nitro-list'
 
 function App(): React.JSX.Element {
+  const { width: containerWidth } = useWindowDimensions()
+  const itemCount = 10_000
+
+  /**
+   * Fixed-height rows for demo purposes.
+   * In real apps, these would be estimates.
+   */
+  const itemHeights = useMemo<readonly number[]>(
+    () => Array.from({ length: itemCount }, () => 80),
+    [itemCount]
+  )
+
   return (
-    <View style={styles.container}>
-        <NitroList isRed={true} style={styles.view} testID="nitro-list" />
-    </View>
-  );
+    <SafeAreaView style={styles.safeArea}>
+      {/* HEADER (fixed height) */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>RecyclerList</Text>
+        <Text style={styles.headerSubtitle}>
+          Nitro-powered • 10,000 items • 60 FPS
+        </Text>
+      </View>
+
+      {/* 
+        IMPORTANT:
+        RecyclerList must live inside a flex container.
+        Otherwise ScrollView height === 0 on first render.
+      */}
+      <View style={styles.listContainer}>
+        <RecyclerList
+          containerWidth={containerWidth}
+          itemHeights={itemHeights}
+          renderBufferRatio={1.3}
+          renderItem={(index: number) => (
+            <View style={styles.card}>
+              <View style={styles.cardIndex}>
+                <Text style={styles.cardIndexText}>
+                  {index + 1}
+                </Text>
+              </View>
+
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>
+                  List Item #{index}
+                </Text>
+                <Text style={styles.cardSubtitle}>
+                  Recycled native view • Nitro layout
+                </Text>
+              </View>
+            </View>
+          )}
+        />
+      </View>
+    </SafeAreaView>
+  )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  view: {
-    width: 200,
-    height: 200
-  }});
+export default App
 
-export default App;
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F4F5F7',
+  },
+
+  /* HEADER */
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E7EB',
+  },
+
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+  },
+
+  headerSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    color: '#6B7280',
+  },
+
+  /**
+   * CRITICAL:
+   * This gives RecyclerList a real height.
+   */
+  listContainer: {
+    flex: 1,
+  },
+
+  /* CARD ROW */
+  card: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginVertical: 8,
+    padding: 16,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+
+  cardIndex: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+
+  cardIndexText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4F46E5',
+  },
+
+  cardContent: {
+    flex: 1,
+  },
+
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+
+  cardSubtitle: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#6B7280',
+  },
+})
+

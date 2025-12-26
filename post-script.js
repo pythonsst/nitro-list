@@ -29,32 +29,88 @@ const updateViewManagerFiles = async (file) => {
 }  
 
 
-const androidWorkaround = async () => {
- const androidOnLoadFile = path.join(
-   process.cwd(),
-   'nitrogen/generated/android',
-   'NitroListOnLoad.cpp'
- )
+// const androidWorkaround = async () => {
+//  const androidOnLoadFile = path.join(
+//    process.cwd(),
+//    'nitrogen/generated/android',
+//    'NitroListOnLoad.cpp'
+//  )
  
- const viewManagerDir = await readdir(
-  path.join(
+//  const viewManagerDir = await readdir(
+//   path.join(
+//     process.cwd(),
+//     'nitrogen/generated/android/kotlin/com/margelo/nitro/nitrolist/views'
+//   )
+//  )
+//  const viewManagerFiles = viewManagerDir.filter((file) =>
+//    file.endsWith('Manager.kt')
+//  )
+//  const res = await Promise.allSettled(
+//    viewManagerFiles.map(updateViewManagerFiles)
+//  )
+
+//  if (res.some((r) => r.status === 'rejected')) {
+//    throw new Error(`Error updating view manager files: ${res}`)
+//  }
+
+ 
+//  const str = await readFile(androidOnLoadFile, { encoding: 'utf8' })
+//  await writeFile(androidOnLoadFile, str.replace(/margelo\/nitro\//g, ''))
+// }
+// androidWorkaround()
+
+async function androidWorkaround() {
+  const androidRoot = path.join(
     process.cwd(),
-    'nitrogen/generated/android/kotlin/com/margelo/nitro/nitrolist/views'
-  )
- )
- const viewManagerFiles = viewManagerDir.filter((file) =>
-   file.endsWith('Manager.kt')
- )
- const res = await Promise.allSettled(
-   viewManagerFiles.map(updateViewManagerFiles)
- )
+    'nitrogen/generated/android'
+  );
 
- if (res.some((r) => r.status === 'rejected')) {
-   throw new Error(`Error updating view manager files: ${res}`)
- }
+  // 1️⃣ If Android was not generated → exit cleanly
+  try {
+    await fs.access(androidRoot);
+  } catch {
+    return;
+  }
 
- 
- const str = await readFile(androidOnLoadFile, { encoding: 'utf8' })
- await writeFile(androidOnLoadFile, str.replace(/margelo\/nitro\//g, ''))
+  // 2️⃣ Patch view managers if present
+  const viewManagerDir = path.join(
+    androidRoot,
+    'kotlin/com/margelo/nitro/nitrolist/views'
+  );
+
+  try {
+    const files = await fs.readdir(viewManagerDir);
+    await Promise.all(
+      files
+        .filter((f) => f.endsWith('Manager.kt'))
+        .map(async (file) => {
+          const filePath = path.join(viewManagerDir, file);
+          const content = await fs.readFile(filePath, 'utf8');
+          await fs.writeFile(
+            filePath,
+            content.replace(
+              /com\.margelo\.nitro\.nitrolist\.\*/g,
+              'com.nitrolist.*'
+            )
+          );
+        })
+    );
+  } catch {
+    // View managers not present → safe no-op
+  }
+
+  // 3️⃣ Patch OnLoad.cpp if present
+  const onLoadFile = path.join(androidRoot, 'NitroListOnLoad.cpp');
+
+  try {
+    const content = await fs.readFile(onLoadFile, 'utf8');
+    await fs.writeFile(
+      onLoadFile,
+      content.replace(/margelo\/nitro\//g, '')
+    );
+  } catch {
+    // File not present → safe no-op
+  }
 }
-androidWorkaround()
+
+androidWorkaround();

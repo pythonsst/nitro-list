@@ -8,25 +8,25 @@
 #include "NitroList-Swift-Cxx-Bridge.hpp"
 
 // Include C++ implementation defined types
-#include "HybridNitroListSpecSwift.hpp"
+#include "HybridNitroLayoutEngineSpecSwift.hpp"
 #include "NitroList-Swift-Cxx-Umbrella.hpp"
 #include <NitroModules/NitroDefines.hpp>
 
 namespace margelo::nitro::nitrolist::bridge::swift {
 
-  // pragma MARK: std::shared_ptr<HybridNitroListSpec>
-  std::shared_ptr<HybridNitroListSpec> create_std__shared_ptr_HybridNitroListSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
-    NitroList::HybridNitroListSpec_cxx swiftPart = NitroList::HybridNitroListSpec_cxx::fromUnsafe(swiftUnsafePointer);
-    return std::make_shared<margelo::nitro::nitrolist::HybridNitroListSpecSwift>(swiftPart);
+  // pragma MARK: std::shared_ptr<HybridNitroLayoutEngineSpec>
+  std::shared_ptr<HybridNitroLayoutEngineSpec> create_std__shared_ptr_HybridNitroLayoutEngineSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    NitroList::HybridNitroLayoutEngineSpec_cxx swiftPart = NitroList::HybridNitroLayoutEngineSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::nitrolist::HybridNitroLayoutEngineSpecSwift>(swiftPart);
   }
-  void* NON_NULL get_std__shared_ptr_HybridNitroListSpec_(std__shared_ptr_HybridNitroListSpec_ cppType) {
-    std::shared_ptr<margelo::nitro::nitrolist::HybridNitroListSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::nitrolist::HybridNitroListSpecSwift>(cppType);
+  void* NON_NULL get_std__shared_ptr_HybridNitroLayoutEngineSpec_(std__shared_ptr_HybridNitroLayoutEngineSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::nitrolist::HybridNitroLayoutEngineSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::nitrolist::HybridNitroLayoutEngineSpecSwift>(cppType);
     #ifdef NITRO_DEBUG
     if (swiftWrapper == nullptr) [[unlikely]] {
-      throw std::runtime_error("Class \"HybridNitroListSpec\" is not implemented in Swift!");
+      throw std::runtime_error("Class \"HybridNitroLayoutEngineSpec\" is not implemented in Swift!");
     }
     #endif
-    NitroList::HybridNitroListSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    NitroList::HybridNitroLayoutEngineSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 

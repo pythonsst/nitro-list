@@ -15,9 +15,7 @@
 #include <fbjni/fbjni.h>
 #include <NitroModules/HybridObjectRegistry.hpp>
 
-#include "JHybridNitroListSpec.hpp"
-#include "views/JHybridNitroListStateUpdater.hpp"
-#include <NitroModules/DefaultConstructableObject.hpp>
+#include "JHybridNitroLayoutEngineSpec.hpp"
 
 namespace margelo::nitro::nitrolist {
 
@@ -28,18 +26,10 @@ int initialize(JavaVM* vm) {
 
   return facebook::jni::initialize(vm, [] {
     // Register native JNI methods
-    margelo::nitro::nitrolist::JHybridNitroListSpec::registerNatives();
-    margelo::nitro::nitrolist::views::JHybridNitroListStateUpdater::registerNatives();
+    margelo::nitro::nitrolist::JHybridNitroLayoutEngineSpec::registerNatives();
 
     // Register Nitro Hybrid Objects
-    HybridObjectRegistry::registerHybridObjectConstructor(
-      "NitroList",
-      []() -> std::shared_ptr<HybridObject> {
-        static DefaultConstructableObject<JHybridNitroListSpec::javaobject> object("com/nitrolist/HybridNitroList");
-        auto instance = object.create();
-        return instance->cthis()->shared();
-      }
-    );
+    
   });
 }
 

@@ -8,12 +8,18 @@
 #pragma once
 
 // Forward declarations of C++ defined types
-// Forward declaration of `HybridNitroListSpec` to properly resolve imports.
-namespace margelo::nitro::nitrolist { class HybridNitroListSpec; }
+// Forward declaration of `HybridNitroLayoutEngineSpec` to properly resolve imports.
+namespace margelo::nitro::nitrolist { class HybridNitroLayoutEngineSpec; }
+// Forward declaration of `LayoutRectangle` to properly resolve imports.
+namespace margelo::nitro::nitrolist { struct LayoutRectangle; }
 
 // Include C++ defined types
-#include "HybridNitroListSpec.hpp"
+#include "HybridNitroLayoutEngineSpec.hpp"
+#include "LayoutRectangle.hpp"
+#include <NitroModules/Result.hpp>
+#include <exception>
 #include <memory>
+#include <vector>
 
 // C++ helpers for Swift
 #include "NitroList-Swift-Cxx-Bridge.hpp"
@@ -25,8 +31,8 @@ namespace margelo::nitro::nitrolist { class HybridNitroListSpec; }
 #include <NitroModules/DateToChronoDate.hpp>
 
 // Forward declarations of Swift defined types
-// Forward declaration of `HybridNitroListSpec_cxx` to properly resolve imports.
-namespace NitroList { class HybridNitroListSpec_cxx; }
+// Forward declaration of `HybridNitroLayoutEngineSpec_cxx` to properly resolve imports.
+namespace NitroList { class HybridNitroLayoutEngineSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("NitroList-Swift.h")

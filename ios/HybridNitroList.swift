@@ -1,21 +1,38 @@
-//
-//  HybridNitroList.swift
-//  Pods
-//
-//  Created by Shiv Shankar Tiwari on 25/12/2025.
-//
-
 import Foundation
-import UIKit
+import NitroModules
 
-class HybridNitroList : HybridNitroListSpec {
-  // UIView
-  var view: UIView = UIView()
+/**
+ * Native layout engine for RecyclerList.
+ * Pure, deterministic, synchronous computation.
+ */
+final class HybridNitroList: HybridNitroListSpec {
 
-  // Props
-  var isRed: Bool = false {
-    didSet {
-      view.backgroundColor = isRed ? .red : .black
+  /**
+   * Computes absolute layout rectangles for all items.
+   * Called synchronously via JSI.
+   */
+  func computeLayout(
+    containerWidth: Double,
+    itemHeights: [Double]
+  ) -> [LayoutRectangle] {
+
+    var layouts: [LayoutRectangle] = []
+    layouts.reserveCapacity(itemHeights.count)
+
+    var currentY: Double = 0
+
+    for height in itemHeights {
+      let rect = LayoutRectangle(
+        x: 0,
+        y: currentY,
+        width: containerWidth,
+        height: height
+      )
+
+      layouts.append(rect)
+      currentY += height
     }
+
+    return layouts
   }
 }
