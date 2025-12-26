@@ -8,17 +8,17 @@
 #pragma once
 
 // Forward declarations of C++ defined types
-// Forward declaration of `HybridNitroListSpec` to properly resolve imports.
-namespace margelo::nitro::nitrolist { class HybridNitroListSpec; }
+// Forward declaration of `HybridNitroLayoutEngineSpec` to properly resolve imports.
+namespace margelo::nitro::nitrolist { class HybridNitroLayoutEngineSpec; }
 // Forward declaration of `LayoutRectangle` to properly resolve imports.
 namespace margelo::nitro::nitrolist { struct LayoutRectangle; }
 
 // Forward declarations of Swift defined types
-// Forward declaration of `HybridNitroListSpec_cxx` to properly resolve imports.
-namespace NitroList { class HybridNitroListSpec_cxx; }
+// Forward declaration of `HybridNitroLayoutEngineSpec_cxx` to properly resolve imports.
+namespace NitroList { class HybridNitroLayoutEngineSpec_cxx; }
 
 // Include C++ defined types
-#include "HybridNitroListSpec.hpp"
+#include "HybridNitroLayoutEngineSpec.hpp"
 #include "LayoutRectangle.hpp"
 #include <NitroModules/Result.hpp>
 #include <exception>
@@ -53,17 +53,17 @@ namespace margelo::nitro::nitrolist::bridge::swift {
     return vector;
   }
   
-  // pragma MARK: std::shared_ptr<HybridNitroListSpec>
+  // pragma MARK: std::shared_ptr<HybridNitroLayoutEngineSpec>
   /**
-   * Specialized version of `std::shared_ptr<HybridNitroListSpec>`.
+   * Specialized version of `std::shared_ptr<HybridNitroLayoutEngineSpec>`.
    */
-  using std__shared_ptr_HybridNitroListSpec_ = std::shared_ptr<HybridNitroListSpec>;
-  std::shared_ptr<HybridNitroListSpec> create_std__shared_ptr_HybridNitroListSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
-  void* NON_NULL get_std__shared_ptr_HybridNitroListSpec_(std__shared_ptr_HybridNitroListSpec_ cppType);
+  using std__shared_ptr_HybridNitroLayoutEngineSpec_ = std::shared_ptr<HybridNitroLayoutEngineSpec>;
+  std::shared_ptr<HybridNitroLayoutEngineSpec> create_std__shared_ptr_HybridNitroLayoutEngineSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridNitroLayoutEngineSpec_(std__shared_ptr_HybridNitroLayoutEngineSpec_ cppType);
   
-  // pragma MARK: std::weak_ptr<HybridNitroListSpec>
-  using std__weak_ptr_HybridNitroListSpec_ = std::weak_ptr<HybridNitroListSpec>;
-  inline std__weak_ptr_HybridNitroListSpec_ weakify_std__shared_ptr_HybridNitroListSpec_(const std::shared_ptr<HybridNitroListSpec>& strong) noexcept { return strong; }
+  // pragma MARK: std::weak_ptr<HybridNitroLayoutEngineSpec>
+  using std__weak_ptr_HybridNitroLayoutEngineSpec_ = std::weak_ptr<HybridNitroLayoutEngineSpec>;
+  inline std__weak_ptr_HybridNitroLayoutEngineSpec_ weakify_std__shared_ptr_HybridNitroLayoutEngineSpec_(const std::shared_ptr<HybridNitroLayoutEngineSpec>& strong) noexcept { return strong; }
   
   // pragma MARK: Result<std::vector<LayoutRectangle>>
   using Result_std__vector_LayoutRectangle__ = Result<std::vector<LayoutRectangle>>;

@@ -130,13 +130,14 @@ repositories {
 
 
 dependencies {
-  // For < 0.71, this will be from the local maven repo
-  // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
-  //noinspection GradleDynamicVersion
+  // React Native
   implementation "com.facebook.react:react-native:+"
 
-  // Add a dependency on NitroModules
+  // Nitro JSI
   implementation project(":react-native-nitro-modules")
+
+  // ✅ REQUIRED: RecyclerView
+  implementation "androidx.recyclerview:recyclerview:1.3.2"
 }
 
 if (isNewArchitectureEnabled()) {
