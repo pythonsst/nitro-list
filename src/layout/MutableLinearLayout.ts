@@ -1,8 +1,8 @@
 import type { Axis } from '../types/Axis'
 import type { LinearLayoutInput } from '../types/layout'
 import type { LayoutRect } from '../types/layout/LayoutRect'
-
 import { DEFAULT_ITEM_SPACING } from './constants/layoutDefaults'
+
 
 /**
  * Mutable, deterministic linear layout engine.

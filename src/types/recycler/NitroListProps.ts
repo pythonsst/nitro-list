@@ -4,12 +4,12 @@ import type { MainAxisPadding } from '../layout'
 import type { RecyclerItemRenderer } from './RecyclerItemRenderer'
 
 /**
- * Public props for RecyclerList.
+ * Public props for NitroList.
  *
  * Generic, data-driven, layout-deterministic API.
  * This surface is intentionally minimal and stable.
  */
-export interface RecyclerListProps<T> {
+export interface NitroListProps<T> {
   /**
    * Scroll direction.
    * Defaults to 'vertical'.

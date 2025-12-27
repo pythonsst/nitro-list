@@ -1,24 +1,9 @@
-/**
- * Logical cell type.
- *
- * Used to group compatible cells for recycling.
- *
- * Cross-platform equivalent:
- * - Android: viewType
- * - iOS: reuseIdentifier
- *
- * NOTE:
- * This is a branded type to prevent accidental mixing
- * with keys, indexes, or other strings/numbers.
+/** * CellType is just a string, but we give it a name 
+ * so the code is easier to read. 
  */
-export type CellType = string & {
-  readonly __cellTypeBrand: unique symbol
-}
+export type CellType = string;
 
-/**
- * Helper to create a CellType safely.
- * Keeps ergonomics simple for users.
+/** * This is an "Identity" function. It doesn't do anything 
+ * to the computer, but it helps the human reading the code.
  */
-export const createCellType = (
-  value: string
-): CellType => value as CellType
+export const cellType = (name: string): CellType => name;

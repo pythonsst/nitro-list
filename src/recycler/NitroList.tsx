@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 
 import type { LayoutRect, VisibleRange } from '../types'
-import type { RecyclerCell, RecyclerListProps } from '../types/recycler'
+import type { RecyclerCell, NitroListProps } from '../types/recycler'
 import type { CellType } from '../types/CellType'
 import type { CellKey } from '../types/CellKey'
 
@@ -32,11 +32,11 @@ interface InternalRecyclerCell extends RecyclerCell<CellKey> {
 }
 
 /* ========================================================= */
-/* RecyclerList                                             */
+/* NitroList                                             */
 /* ========================================================= */
 
-export function RecyclerList<T>(
-  props: RecyclerListProps<T>
+export default function NitroList<T>(
+  props: NitroListProps<T>
 ): React.ReactElement {
   const {
     data,
@@ -140,7 +140,7 @@ export function RecyclerList<T>(
 
     if (DEBUG) {
   console.log(
-    '[RecyclerList] range:',
+    '[NitroList] range:',
     range.startIndex,
     range.endIndex
   )
@@ -244,9 +244,9 @@ if (cell === null) {
 
 
 if (DEBUG) {
-  console.log('[RecyclerList] layouts:', layouts.length)
-  console.log('[RecyclerList] contentSize:', contentSize)
-  console.log('[RecyclerList] data.length:', data.length)
+  console.log('[NitroList] layouts:', layouts.length)
+  console.log('[NitroList] contentSize:', contentSize)
+  console.log('[NitroList] data.length:', data.length)
 }
 
   /* ======================================================= */

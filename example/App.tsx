@@ -11,7 +11,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context'
 import { FlashList } from '@shopify/flash-list'
-import { RecyclerList } from 'react-native-nitro-list'
+import { NitroList } from 'react-native-nitro-list'
 
 /* ---------------- CONFIG ---------------- */
 
@@ -96,7 +96,7 @@ export default function App(): React.JSX.Element {
       {/* LIST */}
       <View style={styles.listContainer}>
         {mode === 'nitro' ? (
-          <RecyclerList
+          <NitroList
             data={data}
             // itemSpacing={32}
             scrollDirection="vertical"

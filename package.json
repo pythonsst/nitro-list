@@ -1,7 +1,7 @@
 {
   "name": "react-native-nitro-list",
   "version": "0.1.2",
-  "description": "react-native-nitro-list is a react native package built with Nitro",
+  "description": "High-performance list for React Native powered by Nitro",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
@@ -45,11 +45,11 @@
   "workspaces": [
     "example"
   ],
-  "repository": "https://github.com/shivshankartiwari/react-native-nitro-list.git",
+  "repository": "https://github.com/pythonsst/nitro-list",
   "author": "Shiv Shankar Tiwari",
   "license": "MIT",
-  "bugs": "https://github.com/shivshankartiwari/react-native-nitro-list/issues",
-  "homepage": "https://github.com/shivshankartiwari/react-native-nitro-list#readme",
+  "bugs": "https://github.com/pythonsst/nitro-list/issues",
+  "homepage": "https://github.com/pythonsst/nitro-list#readme",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

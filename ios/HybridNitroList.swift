@@ -5,7 +5,7 @@ import NitroModules
  * Native layout engine for RecyclerList.
  * Pure, deterministic, synchronous computation.
  */
-final class HybridLayoutEngine: HybridLayoutEngineSpec {
+final class HybridNitroList: HybridNitroListSpec {
 
   func computeLayout(
     containerWidth: Double,

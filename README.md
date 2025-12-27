@@ -150,51 +150,23 @@ npm install react-native-nitro-list
 
 ```tsx
 import { RecyclerList } from 'react-native-nitro-list'
+import { NitroList } from 'react-native-nitro-list'
 
-<RecyclerList
-  containerWidth={width}
-  itemCount={10000}
-  estimatedItemHeight={80}
-  renderItem={(index) => <Row index={index} />}
-/>
-```
+export default function App() {
+  const data = useMemo(() => generateData(10000), []);
+  const heights = useMemo(() => data.map(() => 80), [data]);
 
-### Fixed Heights
+  return (
+    <NitroList
+      data={data}
+      containerCrossAxisSize={width}
+      itemMainAxisSizes={heights}
+      getCellType={() => 'row'}
+      renderItem={({ item }) => <YourComponent data={item} />}
+    />
+  );
+}
 
-```tsx
-<RecyclerList
-  containerWidth={width}
-  itemHeights={heights}
-  renderItem={renderItem}
-/>
-```
-
----
-
-## 👀 Viewability
-
-```tsx
-<RecyclerList
-  onViewableItemsChanged={({ viewableItems, changed }) => {
-    console.log(viewableItems, changed)
-  }}
-/>
-```
-
-- Percentage-based visibility
-- Deterministic enter / exit events
-- Zero layout mutation
-
----
-
-## ⚡ Prefetching
-
-```tsx
-<RecyclerList
-  onPrefetch={(indices) => {
-    preloadData(indices)
-  }}
-/>
 ```
 
 - Runs ahead of the visible window

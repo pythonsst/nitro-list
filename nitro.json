@@ -14,9 +14,9 @@
 
   "autolinking": {
     "views": {
-      "RecyclerView": {
-        "swift": "HybridRecyclerView",
-        "kotlin": "HybridRecyclerView"
+      "NitroList": {
+        "swift": "HybridNitroList",
+        "kotlin": "HybridNitroList"
       }
     },
     "objects": {
