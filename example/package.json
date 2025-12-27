@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.83.1",
+    "@shopify/flash-list": "^2.2.0",
     "react": "19.2.0",
     "react-native": "0.83.1",
     "react-native-nitro-modules": "0.32.0",

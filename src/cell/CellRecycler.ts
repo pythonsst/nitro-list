@@ -1,66 +1,76 @@
 import type { Cell } from './Cell'
-
-const MAX_CELLS = 40
+import { createCell } from './createCell'
 
 /**
- * Owns physical cell reuse.
- * Stateful, imperative, React-agnostic.
- *
- * FlashList equivalent: CellRecycler
+ * Manages physical cell reuse.
+ * Imperative and stateful by design.
+ * This is NOT React code.
  */
 export class CellRecycler {
-  private readonly activeCells = new Map<number, Cell>()
-  private readonly reusableCellsByType = new Map<string, Cell[]>()
-  private readonly orderedCells: Cell[] = []
-  private nextCellId = 0
+  /**
+   * Active cells mapped by logical index.
+   */
+  private readonly indexToCell = new Map<number, Cell>()
 
   /**
-   * Reconcile visible indices against existing cells.
-   * Returns a stable ordered snapshot.
+   * Pool of detached reusable cells.
    */
-  reconcile(
-    visibleIndices: readonly number[],
-    getCellType: (index: number) => string
+  private readonly recycledCells: Cell[] = []
+
+  /**
+   * Reconcile a contiguous visible index range
+   * into a stable list of physical cells.
+   *
+   * HOT PATH:
+   * - No index arrays
+   * - Minimal allocations
+   * - Deterministic
+   */
+  reconcileRange(
+    startIndex: number,
+    endIndex: number,
+    resolveCellType: (index: number) => string
   ): readonly Cell[] {
-    const visibleSet = new Set(visibleIndices)
+    const nextActive: Cell[] = []
 
-    // 1️⃣ Release cells no longer visible
-    for (const [index, cell] of this.activeCells) {
-      if (visibleSet.has(index)) continue
+    // Track which current indices are no longer visible
+    const unusedIndices = new Set(this.indexToCell.keys())
 
-      this.activeCells.delete(index)
+    for (let index = startIndex; index <= endIndex; index++) {
+      unusedIndices.delete(index)
 
-      const orderedIndex = this.orderedCells.indexOf(cell)
-      if (orderedIndex !== -1) {
-        this.orderedCells.splice(orderedIndex, 1)
+      let cell = this.indexToCell.get(index)
+      if (cell) {
+        // Existing assignment — reuse
+        nextActive.push(cell)
+        continue
       }
 
-      const pool = this.reusableCellsByType.get(cell.type) ?? []
-      if (pool.length < MAX_CELLS) pool.push(cell)
-      this.reusableCellsByType.set(cell.type, pool)
-    }
+      const type = resolveCellType(index)
 
-    // 2️⃣ Acquire cells for newly visible indices
-    for (const index of visibleIndices) {
-      if (this.activeCells.has(index)) continue
+      // Try to reuse a recycled cell of same type
+      const recycledIdx = this.recycledCells.findIndex(
+        c => c.type === type
+      )
 
-      const type = getCellType(index)
-      const pool = this.reusableCellsByType.get(type)
-      let cell = pool?.pop()
-
-      if (!cell) {
-        cell = {
-          key: `cell-${this.nextCellId++}`,
-          type,
-          index,
-        }
+      if (recycledIdx !== -1) {
+        cell = this.recycledCells.splice(recycledIdx, 1)[0]!
+      } else {
+        cell = createCell(type)
       }
 
       cell.index = index
-      this.activeCells.set(index, cell)
-      this.orderedCells.push(cell)
+      this.indexToCell.set(index, cell)
+      nextActive.push(cell)
     }
 
-    return this.orderedCells
+    // Recycle cells that left the visible window
+    for (const index of unusedIndices) {
+      const cell = this.indexToCell.get(index)!
+      this.indexToCell.delete(index)
+      this.recycledCells.push(cell)
+    }
+
+    return nextActive
   }
 }

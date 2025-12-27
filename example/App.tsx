@@ -1,131 +1,191 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useCallback, useState } from 'react'
 import {
   StyleSheet,
   View,
   Text,
+  Pressable,
   useWindowDimensions,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context'
+import { FlashList } from '@shopify/flash-list'
 import { RecyclerList } from 'react-native-nitro-list'
 
-function App(): React.JSX.Element {
-  const { width: containerWidth } = useWindowDimensions()
-  const itemCount = 10_000
+/* ---------------- CONFIG ---------------- */
 
-  /**
-   * Fixed-height rows for demo purposes.
-   * In real apps, these would be estimates.
-   */
-  const itemHeights = useMemo<readonly number[]>(
-    () => Array.from({ length: itemCount }, () => 80),
-    [itemCount]
+const ITEM_COUNT = 10_000
+const ROW_HEIGHT = 76
+
+/* ---------------- ROW ---------------- */
+
+const Row = React.memo(({ index }: { index: number }) => {
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardIndex}>
+        <Text style={styles.cardIndexText}>{index + 1}</Text>
+      </View>
+
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle}>List Item #{index + 1}</Text>
+        <Text style={styles.cardSubtitle}>
+          Recycled native view • Nitro layout
+        </Text>
+      </View>
+    </View>
   )
+})
+
+/* ---------------- APP ---------------- */
+
+export default function App(): React.JSX.Element {
+  const { width } = useWindowDimensions()
+  const insets = useSafeAreaInsets()
+  const [mode, setMode] =
+    useState<'nitro' | 'flash'>('nitro')
+
+  /* Data is the source of truth */
+  const data = useMemo(
+    () => Array.from({ length: ITEM_COUNT }, (_, i) => i),
+    []
+  )
+
+  /* Main-axis sizes (required for deterministic layout) */
+  const itemMainAxisSizes = useMemo(
+    () => Array.from({ length: ITEM_COUNT }, () => ROW_HEIGHT),
+    []
+  )
+
+  /* Nitro renderer (NEW API) */
+  const renderNitroItem = useCallback(
+    ({
+      item,
+      index,
+    }: {
+      item: number
+      index: number
+    }) => <Row index={index} />,
+    []
+  )
+
+  /* FlashList renderer */
+  const renderFlashItem = useCallback(
+    ({ item }: { item: number }) => <Row index={item} />,
+    []
+  )
+
+  const toggle = () =>
+    setMode(m => (m === 'nitro' ? 'flash' : 'nitro'))
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* HEADER (fixed height) */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>RecyclerList</Text>
-        <Text style={styles.headerSubtitle}>
-          Nitro-powered • 10,000 items • 60 FPS
+      {/* HEADER */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <Text style={styles.headerTitle}>
+          {mode === 'nitro'
+            ? 'RecyclerList (Nitro)'
+            : 'FlashList'}
         </Text>
+
+        <Pressable style={styles.switch} onPress={toggle}>
+          <Text style={styles.switchText}>Switch</Text>
+        </Pressable>
       </View>
 
-      {/* 
-        IMPORTANT:
-        RecyclerList must live inside a flex container.
-        Otherwise ScrollView height === 0 on first render.
-      */}
+      {/* LIST */}
       <View style={styles.listContainer}>
-        <RecyclerList
-          containerWidth={containerWidth}
-          itemHeights={itemHeights}
-          renderBufferRatio={1.3}
-          renderItem={(index: number) => (
-            <View style={styles.card}>
-              <View style={styles.cardIndex}>
-                <Text style={styles.cardIndexText}>
-                  {index + 1}
-                </Text>
-              </View>
-
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>
-                  List Item #{index}
-                </Text>
-                <Text style={styles.cardSubtitle}>
-                  Recycled native view • Nitro layout
-                </Text>
-              </View>
-            </View>
-          )}
-        />
+        {mode === 'nitro' ? (
+          <RecyclerList
+            data={data}
+            itemSpacing={32}
+            scrollDirection="vertical"
+            containerCrossAxisSize={width}
+            itemMainAxisSizes={itemMainAxisSizes}
+            bufferRatio={1.3}
+            getCellType={() => 'row'}
+            renderItem={renderNitroItem}
+          />
+        ) : (
+          <FlashList
+            data={data}
+            renderItem={renderFlashItem}
+            estimatedItemSize={ROW_HEIGHT}
+            keyExtractor={item => String(item)}
+          />
+        )}
       </View>
     </SafeAreaView>
   )
 }
 
-export default App
-
+/* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F4F5F7',
+    backgroundColor: '#F1F3F6',
   },
 
-  /* HEADER */
   header: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingBottom: 14,
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
 
   headerTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: '#0F172A',
   },
 
-  headerSubtitle: {
-    marginTop: 4,
+  switch: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#4F46E5',
+    borderRadius: 6,
+  },
+
+  switchText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
     fontSize: 13,
-    color: '#6B7280',
   },
 
-  /**
-   * CRITICAL:
-   * This gives RecyclerList a real height.
-   */
   listContainer: {
     flex: 1,
   },
 
-  /* CARD ROW */
   card: {
-    flex: 1,
+    height: ROW_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 16,
-    marginVertical: 8,
-    padding: 16,
+    marginVertical: 6,
+    paddingHorizontal: 14,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
 
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
 
   cardIndex: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#EEF2FF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -133,7 +193,7 @@ const styles = StyleSheet.create({
   },
 
   cardIndexText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#4F46E5',
   },
@@ -145,13 +205,12 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: '#0F172A',
   },
 
   cardSubtitle: {
-    marginTop: 4,
+    marginTop: 2,
     fontSize: 12,
-    color: '#6B7280',
+    color: '#64748B',
   },
 })
-

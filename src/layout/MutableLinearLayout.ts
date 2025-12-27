@@ -1,79 +1,112 @@
-import type { LayoutRectangle } from './LayoutRectangle'
+import type { Axis } from '../types/Axis'
+import type { LinearLayoutInput } from '../types/layout'
+import type { LayoutRect } from '../types/layout/LayoutRect'
+
+import { DEFAULT_ITEM_SPACING } from './constants/layoutDefaults'
 
 /**
- * INTERNAL mutable layout record.
- * This is intentionally mutable and never exposed publicly.
- */
-type MutableLayoutRectangle = {
-  x: number
-  y: number
-  width: number
-  height: number
-}
-
-/**
- * Mutable linear layout store.
- * FlashList-style incremental relayout.
+ * Mutable, deterministic linear layout engine.
+ *
+ * Responsibilities:
+ * - Compute absolute item geometry
+ * - Own layout truth (no React, no scroll state)
+ * - Guarantee monotonic ordering along the main axis
+ *
+ * Cross-platform equivalents:
+ * - Flutter: RenderSliver / SliverList
+ * - Android: LinearLayoutManager
+ * - iOS: UICollectionViewFlowLayout (linear)
  */
 export class MutableLinearLayout {
-  private readonly layouts: MutableLayoutRectangle[]
-  private totalHeight: number
+  private readonly isVertical: boolean
 
-  constructor(
-    initialHeights: readonly number[],
-    width: number
-  ) {
-    this.layouts = []
-    let y = 0
+  /** Absolute item layouts in index order */
+  private layouts: LayoutRect[] = []
 
-    for (const height of initialHeights) {
-      this.layouts.push({
-        x: 0,
-        y,
-        width,
-        height,
-      })
-      y += height
-    }
+  /** Total scrollable size along main axis */
+  private contentSize = 0
 
-    this.totalHeight = y
+  constructor(axis: Axis) {
+    this.isVertical = axis === 'vertical'
   }
 
   /**
-   * Read-only snapshot for consumers.
-   * Returned type is immutable.
+   * Computes layout synchronously from input.
+   *
+   * This method is intentionally parameter-object based
+   * to allow future extension without breaking API.
+   *
+   * Invariants:
+   * - Layouts are monotonic along main axis
+   * - No gaps except explicit spacing
+   * - Deterministic for identical inputs
    */
-  getLayouts(): readonly LayoutRectangle[] {
+  compute(input: LinearLayoutInput): void {
+    const {
+      crossAxisSize,
+      itemMainAxisSizes,
+      padding,
+      itemSpacing = DEFAULT_ITEM_SPACING,
+    } = input
+
+    const itemCount = itemMainAxisSizes.length
+    const layouts: LayoutRect[] = new Array(itemCount)
+
+    let cursor = padding.start
+
+    for (let i = 0; i < itemCount; i++) {
+      const mainAxisSize = itemMainAxisSizes[i]!
+
+      layouts[i] = this.isVertical
+        ? {
+            x: 0,
+            y: cursor,
+            width: crossAxisSize,
+            height: mainAxisSize,
+          }
+        : {
+            x: cursor,
+            y: 0,
+            width: mainAxisSize,
+            height: crossAxisSize,
+          }
+
+      cursor += mainAxisSize
+
+      // Space BETWEEN items, not after the last
+      if (i < itemCount - 1) {
+        cursor += itemSpacing
+      }
+    }
+
+    this.layouts = layouts
+    this.contentSize = cursor + padding.end
+  }
+
+  /**
+   * Returns computed item layouts.
+   *
+   * Order is guaranteed monotonic along the main axis,
+   * which is required for binary-search-based windowing.
+   */
+  getLayouts(): readonly LayoutRect[] {
     return this.layouts
   }
 
-  getContentHeight(): number {
-    return this.totalHeight
+  /**
+   * Returns total scrollable size along the main axis,
+   * including padding and inter-item spacing.
+   */
+  getContentSize(): number {
+    return this.contentSize
   }
 
   /**
-   * Update height of one item and shift following items.
-   * Returns true if layout changed.
+   * Clears internal layout state.
+   * Call on severe invalidation or teardown.
    */
-  updateItemHeight(
-    index: number,
-    newHeight: number
-  ): boolean {
-    const layout = this.layouts[index]
-    if (!layout) return false
-
-    const delta = newHeight - layout.height
-    if (delta === 0) return false
-
-    // Update this item
-    layout.height = newHeight
-
-    // Shift all items after this index
-    for (let i = index + 1; i < this.layouts.length; i++) {
-      this.layouts[i]!.y += delta
-    }
-
-    this.totalHeight += delta
-    return true
+  reset(): void {
+    this.layouts = []
+    this.contentSize = 0
   }
 }
