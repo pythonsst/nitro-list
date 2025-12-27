@@ -1,7 +1,12 @@
-import type { RecyclerCell } from '../types/recycler/RecyclerCell'
-import type { CellType } from '../types/CellType'
+import type { CellType } from "../CellType"
+import type { RecyclerCell } from "./RecyclerCell"
 
-export class CellPool<T extends RecyclerCell<any>> {
+
+/**
+ * Owns recycled physical cells.
+ * Enforces hard caps.
+ */
+export class CellPool<T extends RecyclerCell> {
   private readonly pools = new Map<CellType, T[]>()
   private readonly maxPerType = new Map<CellType, number>()
 
@@ -28,6 +33,13 @@ export class CellPool<T extends RecyclerCell<any>> {
 
     cell.index = -1
     if (bucket.length >= max) return
+
     bucket.push(cell)
+  }
+
+  clear(): void {
+    for (const bucket of this.pools.values()) {
+      bucket.length = 0
+    }
   }
 }

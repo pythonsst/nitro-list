@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react'
-import type { RecyclerCellInstance } from './RecyclerCellInstance'
+import type { RecyclerCell } from './RecyclerCell'
 
+/**
+ * Public renderItem signature for RecyclerList.
+ * Renderers receive a stable physical cell contract.
+ */
 export type RecyclerItemRenderer<T> = (params: {
   item: T
   index: number
-  cell: RecyclerCellInstance
+  cell: RecyclerCell
 }) => ReactNode
