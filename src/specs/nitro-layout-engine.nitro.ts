@@ -1,6 +1,6 @@
 import type { HybridObject } from 'react-native-nitro-modules'
 
-export interface LayoutRectangle {
+export interface LayoutRect {
   readonly x: number
   readonly y: number
   readonly width: number
@@ -13,5 +13,5 @@ export interface NitroLayoutEngine
   computeLayout(
     containerWidth: number,
     itemHeights: readonly number[]
-  ): readonly LayoutRectangle[]
+  ): readonly LayoutRect[]
 }

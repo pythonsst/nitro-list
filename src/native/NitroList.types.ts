@@ -1,4 +1,5 @@
-import type { LayoutRectangle } from '../layout/LayoutRectangle'
+import type { LayoutRect } from "../types/layout";
+
 
 /**
  * JS runtime interface backed by Nitro (JSI).
@@ -8,5 +9,5 @@ export interface NitroList {
   computeLayout(
     containerWidth: number,
     itemHeights: readonly number[]
-  ): readonly LayoutRectangle[]
+  ): readonly LayoutRect[]
 }

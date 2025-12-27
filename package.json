@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-list",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "react-native-nitro-list is a react native package built with Nitro",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
@@ -8,6 +8,7 @@
   "react-native": "src/index",
   "source": "src/index",
   "scripts": {
+    "publish:release": "./scripts/publish.sh",
     "test": "npx jest --passWithNoTests",
     "test:watch": "npx jest --watch",
     "typecheck": "tsc --noEmit",

@@ -1,14 +1,23 @@
 /**
  * Physical reusable cell.
- * Mirrors FlashList's Cell abstraction.
+ * Represents a single mounted view instance.
  */
 export interface Cell {
-  /** Stable physical identity (never changes) */
+  /**
+   * Stable physical identity.
+   * Used as React key. NEVER changes.
+   */
   readonly key: string
 
-  /** Logical data index currently bound */
+  /**
+   * Logical data index currently bound.
+   * Changes as the cell is recycled.
+   */
   index: number
 
-  /** Compatibility type (row, header, etc.) */
+  /**
+   * Compatibility type (row, header, etc).
+   * Determines reuse eligibility.
+   */
   readonly type: string
 }

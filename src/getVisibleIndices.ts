@@ -1,4 +1,6 @@
-import type { LayoutRectangle } from './layout/LayoutRectangle'
+
+
+import type { LayoutRect } from './types/layout'
 import type { ScrollMetrics } from './windowing/ScrollMetrics'
 
 /**
@@ -6,7 +8,7 @@ import type { ScrollMetrics } from './windowing/ScrollMetrics'
  * Returns indices intersecting viewport ± buffer.
  */
 export function getVisibleRange(
-  layouts: readonly LayoutRectangle[],
+  layouts: readonly LayoutRect[],
   metrics: ScrollMetrics,
   bufferPx: number
 ): readonly number[] {

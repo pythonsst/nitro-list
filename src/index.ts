@@ -1,2 +1,1 @@
-export { RecyclerList } from './RecyclerList'
-export type { RecyclerListProps } from './RecyclerList.types'
+export { RecyclerList } from './recycler/RecyclerList'
