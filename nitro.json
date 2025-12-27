@@ -14,15 +14,15 @@
 
   "autolinking": {
     "views": {
-      "NitroListView": {
-        "swift": "HybridNitroList",
-        "kotlin": "HybridNitroList"
+      "RecyclerView": {
+        "swift": "HybridRecyclerView",
+        "kotlin": "HybridRecyclerView"
       }
     },
     "objects": {
-      "NitroLayoutEngine": {
-        "swift": "HybridNitroLayoutEngine",
-        "kotlin": "HybridNitroLayoutEngine"
+      "LayoutEngine": {
+        "swift": "HybridLayoutEngine",
+        "kotlin": "HybridLayoutEngine"
       }
     }
   },

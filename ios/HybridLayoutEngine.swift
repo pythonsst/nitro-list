@@ -5,21 +5,21 @@ import NitroModules
  * Native layout engine for RecyclerList.
  * Pure, deterministic, synchronous computation.
  */
-final class HybridNitroLayoutEngine: HybridNitroLayoutEngineSpec {
+final class HybridLayoutEngine: HybridLayoutEngineSpec {
 
   func computeLayout(
     containerWidth: Double,
     itemHeights: [Double]
-  ) -> [LayoutRect] {
+  ) -> [ItemLayout] { // Changed from LayoutRect to ItemLayout
 
-    var layouts: [LayoutRect] = []
+    var layouts: [ItemLayout] = [] // Changed from LayoutRect to ItemLayout
     layouts.reserveCapacity(itemHeights.count)
 
     var currentY: Double = 0
 
     for height in itemHeights {
       layouts.append(
-        LayoutRect(
+        ItemLayout( // This now matches the generated struct name
           x: 0,
           y: currentY,
           width: containerWidth,
@@ -31,4 +31,6 @@ final class HybridNitroLayoutEngine: HybridNitroLayoutEngineSpec {
 
     return layouts
   }
+  
+  // Don't forget to update getVisibleRange to use ItemLayout if it references it!
 }
