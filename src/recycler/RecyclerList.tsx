@@ -1,8 +1,4 @@
-import React, {
-  useRef,
-  useEffect,
-  useState,
-} from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import {
   ScrollView,
   View,
@@ -11,24 +7,23 @@ import {
   type NativeScrollEvent,
 } from 'react-native'
 
-import type {
-  LayoutRect,
-  VisibleRange,
-} from '../types'
-
-import { MutableLinearLayout } from '../layout/MutableLinearLayout'
-import { computeVisibleItemRange } from '../windowing'
-import { CellPool } from './CellPool'
+import type { LayoutRect, VisibleRange } from '../types'
 import type {
   RecyclerCellInstance,
   RecyclerListProps,
 } from '../types/recycler'
+import type { CellType } from '../types/CellType'
+
+import { MutableLinearLayout } from '../layout/MutableLinearLayout'
+import { computeVisibleItemRange } from '../windowing'
+import { CellPool } from './CellPool'
 
 /* =========================================================
- * Constants (implementation only)
+ * Constants
  * =======================================================*/
 
 const DEFAULT_VIEWPORT_SIZE = 800
+const DEFAULT_ITEM_SIZE = 60
 const SCROLL_EVENT_THROTTLE = 16
 
 /* =========================================================
@@ -44,7 +39,7 @@ export function RecyclerList<T>(
     data,
     itemMainAxisSizes,
     padding = { start: 0, end: 0 },
-    itemSpacing,               // ✅ IMPORTANT
+    itemSpacing,
     bufferRatio = 1.3,
     getCellType,
     renderItem,
@@ -54,27 +49,23 @@ export function RecyclerList<T>(
   const itemCount = data.length
 
   /* -------------------------------------------------------
-   * Minimal render invalidation
+   * Controlled render
    * -----------------------------------------------------*/
 
   const [, forceRender] = useState(0)
 
   /* -------------------------------------------------------
-   * Layout engine (pure, deterministic)
+   * Layout engine
    * -----------------------------------------------------*/
 
   const layoutEngineRef = useRef<MutableLinearLayout | null>(null)
-  const layoutSignatureRef = useRef<string>('')
+  const layoutSignatureRef = useRef('')
 
-  /**
-   * ⚠️ Any value that affects layout geometry
-   * MUST participate in this signature.
-   */
   const layoutSignature = [
     scrollDirection,
     containerCrossAxisSize,
     itemCount,
-    itemMainAxisSizes,          // reference identity
+    itemMainAxisSizes,
     padding.start,
     padding.end,
     itemSpacing ?? 'default',
@@ -85,14 +76,12 @@ export function RecyclerList<T>(
     layoutSignatureRef.current !== layoutSignature
   ) {
     const engine = new MutableLinearLayout(scrollDirection)
-
     engine.compute({
       crossAxisSize: containerCrossAxisSize,
       itemMainAxisSizes,
       padding,
-      itemSpacing,              // ✅ PASSED TO ENGINE
+      itemSpacing,
     })
-
     layoutEngineRef.current = engine
     layoutSignatureRef.current = layoutSignature
   }
@@ -104,29 +93,30 @@ export function RecyclerList<T>(
     layoutEngineRef.current.getContentSize()
 
   /* -------------------------------------------------------
-   * Scroll metrics (refs only)
+   * Scroll metrics
    * -----------------------------------------------------*/
 
   const scrollOffsetRef = useRef(0)
   const viewportSizeRef = useRef(DEFAULT_VIEWPORT_SIZE)
 
   /* -------------------------------------------------------
-   * Recycling
+   * Cell pool + physical cells
    * -----------------------------------------------------*/
 
   const cellPoolRef = useRef(new CellPool())
   const activeCellsRef = useRef<RecyclerCellInstance[]>([])
-
-  /** Stable physical identity generator */
   const nextCellKeyRef = useRef(0)
 
-  const createCellInstance = (
-    type: RecyclerCellInstance['type']
-  ): RecyclerCellInstance => ({
+  const createCell = (type: CellType): RecyclerCellInstance => ({
     key: nextCellKeyRef.current++,
     index: -1,
     type,
   })
+
+  const MAX_CELLS = Math.ceil(
+    (viewportSizeRef.current / DEFAULT_ITEM_SIZE) *
+      bufferRatio
+  ) + 2
 
   /* -------------------------------------------------------
    * Visible cell coordinator
@@ -137,7 +127,7 @@ export function RecyclerList<T>(
     const viewportSize = viewportSizeRef.current
     const buffer = viewportSize * bufferRatio
 
-    const visibleRange: VisibleRange | null =
+    const range: VisibleRange | null =
       computeVisibleItemRange({
         layouts,
         offset,
@@ -146,62 +136,87 @@ export function RecyclerList<T>(
         isVertical,
       })
 
-    if (!visibleRange) {
-      for (const cell of activeCellsRef.current) {
-        cellPoolRef.current.release(cell)
-      }
-      activeCellsRef.current = []
-      forceRender(v => v + 1)
-      return
-    }
+    if (!range) return
 
-    const nextActiveCells: RecyclerCellInstance[] = []
+    const nextCells: RecyclerCellInstance[] = []
+    const used = new Set<RecyclerCellInstance>()
 
     for (
-      let index = visibleRange.startIndex;
-      index <= visibleRange.endIndex;
+      let index = range.startIndex;
+      index <= range.endIndex;
       index++
     ) {
       const item = data[index]
       if (item === undefined) continue
 
-      const cellType = getCellType(item, index)
+      const type = getCellType(item, index)
 
-      let cell =
-        cellPoolRef.current.acquire(cellType)
+      // Register type once, with hard cap
+      if (!cellPoolRef.current.hasType(type)) {
+        cellPoolRef.current.registerType(type, MAX_CELLS)
+        for (let i = 0; i < MAX_CELLS; i++) {
+          cellPoolRef.current.release(createCell(type))
+        }
+      }
+
+      let cell = cellPoolRef.current.acquire(type)
 
       if (!cell) {
-        cell = createCellInstance(cellType)
+        const reuseIndex =
+          activeCellsRef.current.findIndex(
+            c => c.type === type
+          )
+
+        if (reuseIndex === -1) continue
+
+        cell =
+          activeCellsRef.current.splice(
+            reuseIndex,
+            1
+          )[0]!
       }
 
       cell.index = index
-      nextActiveCells.push(cell)
+      nextCells.push(cell)
+      used.add(cell)
     }
 
-    // Release cells that fell out of range
     for (const cell of activeCellsRef.current) {
-      if (!nextActiveCells.includes(cell)) {
+      if (!used.has(cell)) {
         cellPoolRef.current.release(cell)
       }
     }
 
-    activeCellsRef.current = nextActiveCells
-    forceRender(v => v + 1)
+    let changed =
+      nextCells.length !== activeCellsRef.current.length
+
+    if (!changed) {
+      for (let i = 0; i < nextCells.length; i++) {
+        if (nextCells[i] !== activeCellsRef.current[i]) {
+          changed = true
+          break
+        }
+      }
+    }
+
+    if (changed) {
+      activeCellsRef.current = nextCells
+      forceRender(v => v + 1)
+    }
   }
 
   /* -------------------------------------------------------
-   * Scroll handlers (frame-gated)
+   * Scroll handlers
    * -----------------------------------------------------*/
 
   const frameScheduledRef = useRef(false)
 
   const onScroll = (
-    event: NativeSyntheticEvent<NativeScrollEvent>
+    e: NativeSyntheticEvent<NativeScrollEvent>
   ): void => {
-    scrollOffsetRef.current =
-      isVertical
-        ? event.nativeEvent.contentOffset.y
-        : event.nativeEvent.contentOffset.x
+    scrollOffsetRef.current = isVertical
+      ? e.nativeEvent.contentOffset.y
+      : e.nativeEvent.contentOffset.x
 
     if (frameScheduledRef.current) return
     frameScheduledRef.current = true
@@ -212,18 +227,13 @@ export function RecyclerList<T>(
     })
   }
 
-  const onLayout = (event: any): void => {
-    viewportSizeRef.current =
-      isVertical
-        ? event.nativeEvent.layout.height
-        : event.nativeEvent.layout.width
+  const onLayout = (e: any): void => {
+    viewportSizeRef.current = isVertical
+      ? e.nativeEvent.layout.height
+      : e.nativeEvent.layout.width
 
     updateVisibleCells()
   }
-
-  /* -------------------------------------------------------
-   * Initial mount
-   * -----------------------------------------------------*/
 
   useEffect(() => {
     updateVisibleCells()
