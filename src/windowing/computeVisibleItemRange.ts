@@ -1,19 +1,25 @@
-import type { VisibleRange } from '../types/VisibleRange'
-import type { VisibleRangeInput } from '../types/VisibleRangeInput'
+import type { LayoutRect } from "../types/layout"
+
+
+export type VisibleRange = {
+  startIndex: number
+  endIndex: number
+}
+
+type Input = {
+  layouts: readonly LayoutRect[]
+  offset: number
+  viewportSize: number
+  buffer: number
+  isVertical: boolean
+}
 
 /**
- * Computes the visible item index range using binary search.
- *
- * Responsibilities:
- * - Determine which items intersect the visible window
- * - Stay independent of rendering and recycling
- *
- * Performance:
- * - O(log n) to locate the first visible item
- * - O(k) to expand to the last visible item (k = visible count)
+ * Computes visible item range using binary search + forward scan.
+ * Type-safe and defensive against invalid indices.
  */
 export function computeVisibleItemRange(
-  input: VisibleRangeInput
+  input: Input
 ): VisibleRange | null {
   const {
     layouts,
@@ -23,56 +29,54 @@ export function computeVisibleItemRange(
     isVertical,
   } = input
 
-  const itemCount = layouts.length
-  if (itemCount === 0) return null
+  const count = layouts.length
+  if (count === 0) return null
 
   const windowStart = Math.max(0, offset - buffer)
   const windowEnd = offset + viewportSize + buffer
 
-  // --------------------------------------------------
-  // Binary search:
-  // First item whose END >= windowStart
-  // --------------------------------------------------
+  // ------------------------------
+  // Binary search: first visible
+  // ------------------------------
   let low = 0
-  let high = itemCount - 1
-  let firstVisibleIndex = itemCount
+  let high = count - 1
+  let first = count
 
   while (low <= high) {
     const mid = (low + high) >>> 1
-    const rect = layouts[mid]!
+    const rect = layouts[mid]
+    if (!rect) break
 
     const start = isVertical ? rect.y : rect.x
     const size = isVertical ? rect.height : rect.width
-    const end = start + size
 
-    if (end >= windowStart) {
-      firstVisibleIndex = mid
+    if (start + size >= windowStart) {
+      first = mid
       high = mid - 1
     } else {
       low = mid + 1
     }
   }
 
-  if (firstVisibleIndex === itemCount) {
-    return null
-  }
+  if (first === count) return null
 
-  // --------------------------------------------------
-  // Linear scan forward:
-  // Last item whose START <= windowEnd
-  // --------------------------------------------------
-  let lastVisibleIndex = firstVisibleIndex
+  // ------------------------------
+  // Linear scan: last visible
+  // ------------------------------
+  let last = first
 
-  for (let i = firstVisibleIndex + 1; i < itemCount; i++) {
-    const rect = layouts[i]!
+  for (let i = first + 1; i < count; i++) {
+    const rect = layouts[i]
+    if (!rect) break
+
     const start = isVertical ? rect.y : rect.x
-
     if (start > windowEnd) break
-    lastVisibleIndex = i
+
+    last = i
   }
 
   return {
-    startIndex: firstVisibleIndex,
-    endIndex: lastVisibleIndex,
+    startIndex: first,
+    endIndex: last,
   }
 }

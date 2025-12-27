@@ -5,15 +5,14 @@ export class CellPool {
   private readonly pools = new Map<CellType, RecyclerCellInstance[]>()
   private readonly maxPerType = new Map<CellType, number>()
 
-  /** ✅ NEW: check if a type is registered */
   hasType(type: CellType): boolean {
     return this.pools.has(type)
   }
 
   registerType(type: CellType, maxCount: number): void {
-    if (this.maxPerType.has(type)) return
-    this.maxPerType.set(type, maxCount)
+    if (this.pools.has(type)) return
     this.pools.set(type, [])
+    this.maxPerType.set(type, maxCount)
   }
 
   acquire(type: CellType): RecyclerCellInstance | null {
@@ -23,15 +22,13 @@ export class CellPool {
   }
 
   release(cell: RecyclerCellInstance): void {
-    const { type } = cell
-    const bucket = this.pools.get(type)
-    const max = this.maxPerType.get(type)
-
+    const bucket = this.pools.get(cell.type)
+    const max = this.maxPerType.get(cell.type)
     if (!bucket || max === undefined) return
 
     cell.index = -1
-
     if (bucket.length >= max) return
+
     bucket.push(cell)
   }
 
@@ -39,9 +36,5 @@ export class CellPool {
     for (const bucket of this.pools.values()) {
       bucket.length = 0
     }
-  }
-
-  getPoolSize(type: CellType): number {
-    return this.pools.get(type)?.length ?? 0
   }
 }

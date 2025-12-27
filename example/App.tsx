@@ -98,7 +98,7 @@ export default function App(): React.JSX.Element {
         {mode === 'nitro' ? (
           <RecyclerList
             data={data}
-            itemSpacing={32}
+            // itemSpacing={32}
             scrollDirection="vertical"
             containerCrossAxisSize={width}
             itemMainAxisSizes={itemMainAxisSizes}
@@ -110,7 +110,7 @@ export default function App(): React.JSX.Element {
           <FlashList
             data={data}
             renderItem={renderFlashItem}
-            estimatedItemSize={ROW_HEIGHT}
+            // estimatedItemSize={ROW_HEIGHT}
             keyExtractor={item => String(item)}
           />
         )}
