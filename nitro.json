@@ -1,31 +1,17 @@
 {
   "$schema": "https://nitro.margelo.com/nitro.schema.json",
-
-  "cxxNamespace": ["nitrolist"],
-
+  "cxxNamespace": ["recyclerlistview"],
   "ios": {
     "iosModuleName": "NitroList"
   },
-
   "android": {
-    "androidNamespace": ["nitrolist"],
-    "androidCxxLibName": "NitroList"
+    "androidNamespace": ["recyclerlistview"],
+    "androidCxxLibName": "NitroRecyclerListView"
   },
-
   "autolinking": {
-    "views": {
-      "NitroList": {
-        "swift": "HybridNitroList",
-        "kotlin": "HybridNitroList"
-      }
-    },
-    "objects": {
-      "LayoutEngine": {
-        "swift": "HybridLayoutEngine",
-        "kotlin": "HybridLayoutEngine"
-      }
+    "RecyclerListView": {
+      "swift": "HybridRecyclerListView",
+      "kotlin": "HybridRecyclerListView"
     }
-  },
-
-  "ignorePaths": ["**/node_modules"]
+  }
 }

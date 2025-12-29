@@ -1,11 +1,6 @@
 import type { Cell } from './Cell'
 import { createCell } from './createCell'
 
-/**
- * Manages physical cell reuse.
- * Imperative and stateful by design.
- * This is NOT React code.
- */
 export class CellRecycler {
   /**
    * Active cells mapped by logical index.
@@ -13,19 +8,10 @@ export class CellRecycler {
   private readonly indexToCell = new Map<number, Cell>()
 
   /**
-   * Pool of detached reusable cells.
+   * Recycled cells grouped by type.
    */
-  private readonly recycledCells: Cell[] = []
+  private readonly recycledByType = new Map<string, Cell[]>()
 
-  /**
-   * Reconcile a contiguous visible index range
-   * into a stable list of physical cells.
-   *
-   * HOT PATH:
-   * - No index arrays
-   * - Minimal allocations
-   * - Deterministic
-   */
   reconcileRange(
     startIndex: number,
     endIndex: number,
@@ -33,28 +19,25 @@ export class CellRecycler {
   ): readonly Cell[] {
     const nextActive: Cell[] = []
 
-    // Track which current indices are no longer visible
-    const unusedIndices = new Set(this.indexToCell.keys())
+    // Mark all current cells as unused
+    for (const cell of this.indexToCell.values()) {
+      cell.index = -1
+    }
 
     for (let index = startIndex; index <= endIndex; index++) {
-      unusedIndices.delete(index)
-
       let cell = this.indexToCell.get(index)
+
       if (cell) {
-        // Existing assignment — reuse
+        cell.index = index
         nextActive.push(cell)
         continue
       }
 
       const type = resolveCellType(index)
+      const pool = this.recycledByType.get(type)
 
-      // Try to reuse a recycled cell of same type
-      const recycledIdx = this.recycledCells.findIndex(
-        c => c.type === type
-      )
-
-      if (recycledIdx !== -1) {
-        cell = this.recycledCells.splice(recycledIdx, 1)[0]!
+      if (pool && pool.length > 0) {
+        cell = pool.pop()!
       } else {
         cell = createCell(type)
       }
@@ -64,11 +47,19 @@ export class CellRecycler {
       nextActive.push(cell)
     }
 
-    // Recycle cells that left the visible window
-    for (const index of unusedIndices) {
-      const cell = this.indexToCell.get(index)!
-      this.indexToCell.delete(index)
-      this.recycledCells.push(cell)
+    // Recycle cells no longer in use
+    for (const [index, cell] of this.indexToCell) {
+      if (cell.index !== index) {
+        this.indexToCell.delete(index)
+
+        let pool = this.recycledByType.get(cell.type)
+        if (!pool) {
+          pool = []
+          this.recycledByType.set(cell.type, pool)
+        }
+
+        pool.push(cell)
+      }
     }
 
     return nextActive
