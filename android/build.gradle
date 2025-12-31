@@ -112,14 +112,26 @@ android {
   }
 
   sourceSets {
-    main {
-      if (isNewArchitectureEnabled()) {
-        java.srcDirs += [
-          // React Codegen files
-          "${project.buildDir}/generated/source/codegen/java"
-        ]
+//    main {
+//      if (isNewArchitectureEnabled()) {
+//        java.srcDirs += [
+//          // React Codegen files
+//          "${project.buildDir}/generated/source/codegen/java"
+//        ]
+//      }
+//    }
+      main {
+          // ✅ Nitro generated Kotlin (CORRECT PATH)
+          kotlin.srcDirs += [
+                  "$projectDir/../nitrogen/generated/android/kotlin"
+          ]
+
+          if (isNewArchitectureEnabled()) {
+              java.srcDirs += [
+                      "${project.buildDir}/generated/source/codegen/java"
+              ]
+          }
       }
-    }
   }
 }
 

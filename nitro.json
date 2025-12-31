@@ -5,8 +5,8 @@
     "iosModuleName": "NitroList"
   },
   "android": {
-    "androidNamespace": ["recyclerlistview"],
-    "androidCxxLibName": "NitroRecyclerListView"
+    "androidNamespace": ["nitrolist"],
+    "androidCxxLibName": "NitroList"
   },
   "autolinking": {
     "RecyclerListView": {
