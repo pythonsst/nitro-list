@@ -1,6 +1,8 @@
 require "json"
 
-package = JSON.parse(File.read(File.join(__dir__, "package.json")))
+package = JSON.parse(
+  File.read(File.join(__dir__, "package.json"))
+)
 
 Pod::Spec.new do |s|
   s.name         = "NitroList"
@@ -10,22 +12,29 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => min_ios_version_supported, :visionos => 1.0 }
-  s.source       = { :git => "https://github.com/shivshankartiwari/react-native-nitro-list.git", :tag => "#{s.version}" }
+  # ⚠️ min_ios_version_supported must exist
+  s.platforms = { :ios => '15.1' }
+  s.source       = {
+    :git => "https://github.com/shivshankartiwari/react-native-nitro-list.git",
+    :tag => s.version.to_s
+  }
 
   s.source_files = [
-    # Implementation (Swift)
+    # Swift implementations
     "ios/**/*.{swift}",
-    # Autolinking/Registration (Objective-C++)
+    # ObjC++ / autolinking glue
     "ios/**/*.{m,mm}",
-    # Implementation (C++ objects)
-    "cpp/**/*.{hpp,cpp}",
+    # C++ HybridObjects
+    "cpp/**/*.{hpp,cpp}"
   ]
 
-  load 'nitrogen/generated/ios/NitroList+autolinking.rb'
+  # ✅ MUST exist and MUST match iosModuleName
+  load File.join(__dir__, "nitrogen/generated/ios/NitroList+autolinking.rb")
   add_nitrogen_files(s)
 
-  s.dependency 'React-jsi'
-  s.dependency 'React-callinvoker'
+  # Nitro / RN dependencies
+  s.dependency "React-jsi"
+  s.dependency "React-callinvoker"
+
   install_modules_dependencies(s)
 end

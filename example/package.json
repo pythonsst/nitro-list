@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+  "ios:clean": "set -e && rm -rf ../nitrogen/generated ios/Pods ios/Podfile.lock ios/build ~/Library/Developer/Xcode/DerivedData/* && cd .. && npx nitrogen && cd example/ios && pod install",
     "android": "react-native run-android",
     "ios": "react-native run-ios --simulator='iPhone 16'",
     "lint": "eslint .",
