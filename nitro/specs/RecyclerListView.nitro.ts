@@ -5,9 +5,9 @@ import type {
 } from 'react-native-nitro-modules'
 
 export interface RecyclerListViewProps extends HybridViewProps {
-  containerCrossAxisSize: number
-  contentSize: number
-  scrollOffset: number
+  containerCrossAxisSize: number      // width
+  containerMainAxisSize: number       // height (viewport)
+  contentSize: number                // total scroll height           // controlled offset (for now)
 }
 
 export interface RecyclerListViewMethods extends HybridViewMethods {}

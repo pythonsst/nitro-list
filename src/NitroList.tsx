@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { View } from 'react-native'
 import { RecyclerListViewNative } from './native/RecyclerListViewNative'
 
@@ -8,25 +8,31 @@ export function NitroList<T>({
   renderItem,
   containerCrossAxisSize,
   viewportHeight,
-  scrollOffset,
 }: {
   data: readonly T[]
   itemHeight: number
   renderItem: (info: { item: T; index: number }) => React.ReactElement
   containerCrossAxisSize: number
   viewportHeight: number
-  scrollOffset: number
 }) {
+  // 🔑 Native-driven scroll offset (will be updated from native later)
+  const [scrollOffset] = useState(0)
+
   const contentSize = data.length * itemHeight
 
-  const start = Math.max(0, Math.floor(scrollOffset / itemHeight) - 5)
+  const start = Math.max(
+    0,
+    Math.floor(scrollOffset / itemHeight) - 5
+  )
+
   const end = Math.min(
     data.length,
     Math.ceil((scrollOffset + viewportHeight) / itemHeight) + 5
   )
 
   const children = useMemo(() => {
-    const out = []
+    const out: React.ReactElement[] = []
+
     for (let i = start; i < end; i++) {
       out.push(
         <View
@@ -43,14 +49,24 @@ export function NitroList<T>({
         </View>
       )
     }
+
     return out
-  }, [start, end, data])
+  }, [start, end, data, itemHeight, renderItem])
+
+  console.log('[NitroList JS]', {
+    containerCrossAxisSize,
+    viewportHeight,
+    contentSize,
+    scrollOffset,
+    start,
+    end,
+  })
 
   return (
     <RecyclerListViewNative
       containerCrossAxisSize={containerCrossAxisSize}
+      containerMainAxisSize={viewportHeight}
       contentSize={contentSize}
-      scrollOffset={scrollOffset}
     >
       {children}
     </RecyclerListViewNative>

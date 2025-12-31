@@ -5,22 +5,23 @@ final class HybridRecyclerListView:
   HybridRecyclerListViewSpec_base,
   HybridRecyclerListViewSpec_protocol
 {
-  // MARK: - Required init
+  private let scrollView = UIScrollView()
 
   required override init() {
     super.init()
+    print("[RecyclerListView native] INIT")
+
     scrollView.alwaysBounceVertical = true
-    scrollView.addSubview(contentView)
+    scrollView.showsVerticalScrollIndicator = true
   }
 
-  // MARK: - Views
-
-  private let scrollView = UIScrollView()
-  private let contentView = UIView()
-
-  // MARK: - Props (MUST match .nitro.ts EXACTLY)
+  // MARK: - Props
 
   var containerCrossAxisSize: Double = 0 {
+    didSet { updateLayout() }
+  }
+
+  var containerMainAxisSize: Double = 0 {
     didSet { updateLayout() }
   }
 
@@ -28,37 +29,26 @@ final class HybridRecyclerListView:
     didSet { updateLayout() }
   }
 
-  var scrollOffset: Double = 0 {
-    didSet {
-      scrollView.contentOffset.y = CGFloat(scrollOffset)
-    }
-  }
-
-  // MARK: - HybridView requirement
+  // MARK: - HybridView
+  // React Native controls layout
 
   var view: UIView {
-    scrollView
+    return scrollView
   }
 
-  // MARK: - Lifecycle hooks
-
-  func beforeUpdate() {}
-  func afterUpdate() {}
-
   // MARK: - Layout
+  // 🔥 DO NOT SET FRAME
 
   private func updateLayout() {
-    let width = CGFloat(containerCrossAxisSize)
-    let height = CGFloat(contentSize)
-
-    scrollView.frame.size.width = width
-    scrollView.contentSize = CGSize(width: width, height: height)
-
-    contentView.frame = CGRect(
-      x: 0,
-      y: 0,
-      width: width,
-      height: height
+    scrollView.contentSize = CGSize(
+      width: CGFloat(containerCrossAxisSize),
+      height: CGFloat(contentSize)
     )
+
+    print("""
+    [RecyclerListView native layout]
+      bounds: \(scrollView.bounds)
+      contentSize: \(scrollView.contentSize)
+    """)
   }
 }
